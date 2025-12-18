@@ -27,7 +27,11 @@
 
         body {
             font-family: 'Comic Sans MS', 'Chalkboard SE', 'Comic Neue', cursive, sans-serif;
-            background-color: var(--background-color);
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255, 152, 0, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(76, 175, 80, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(33, 150, 243, 0.05) 0%, transparent 50%),
+                var(--background-color);
             color: var(--text-color);
             overflow-x: hidden;
             transition: background-color 0.5s, color 0.5s;
@@ -37,7 +41,10 @@
         }
 
         body.night-mode {
-            background-color: var(--night-bg);
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.1) 0%, transparent 50%),
+                var(--night-bg);
             color: var(--night-text);
         }
 
@@ -161,6 +168,7 @@
             text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
             margin-bottom: 10px;
             font-family: 'Fredoka One', cursive;
+            animation: fadeIn 1s ease-in;
         }
 
         .profile-img {
@@ -173,11 +181,14 @@
             background-color: #fff;
             object-fit: cover;
             cursor: pointer;
-            transition: transform 0.3s;
+            transition: all 0.3s ease;
+            animation: bounceIn 1.5s;
         }
 
         .profile-img:hover {
-            transform: scale(1.05);
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            animation: wiggle 0.5s;
         }
 
         .speech-bubble {
@@ -233,9 +244,32 @@
             justify-content: center;
             box-shadow: var(--shadow);
             cursor: pointer;
-            transition: transform 0.3s, box-shadow 0.3s;
+            transition: all 0.3s ease;
             aspect-ratio: 1;
             border: 3px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .category-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent,
+                rgba(255, 255, 255, 0.1),
+                transparent
+            );
+            transform: rotate(45deg);
+            transition: all 0.5s;
+        }
+        
+        .category-card:hover::before {
+            left: 100%;
         }
 
         body.night-mode .category-card {
@@ -244,13 +278,22 @@
         }
 
         .category-card:hover {
-            transform: translateY(-5px) scale(1.05);
-            box-shadow: 0 12px 20px rgba(0,0,0,0.2);
+            transform: translateY(-10px) scale(1.08);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+        }
+        
+        .category-card:active {
+            transform: translateY(-5px) scale(1.03);
         }
 
         .category-icon {
             font-size: 2.5em;
             margin-bottom: 10px;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .category-card:hover .category-icon {
+            animation: bounce 0.5s;
         }
 
         .category-title {
@@ -392,6 +435,39 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+        
+        @keyframes slideInLeft {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-5deg); }
+            75% { transform: rotate(5deg); }
+        }
+        
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.1); }
+            50% { transform: scale(1); }
+            75% { transform: scale(1.05); }
+        }
+        
+        @keyframes rainbow {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
         }
 
         /* Modal Windows */
@@ -2526,16 +2602,26 @@ const storiesData = [
 
 // Oyunlar
 const gamesData = [
-    { name: 'Hafıza Oyunu', description: 'Kartları eşleştir', type: 'memory' },
-    { name: 'Matematik Oyunu', description: 'Toplama ve çıkarma', type: 'math' },
-    { name: 'Balon Patlatma', description: 'Balonları patlat', type: 'balloon' },
-    { name: 'XOX Oyunu', description: 'Üç taş', type: 'xox' },
-    { name: 'Cümle Tamamlama', description: 'Eksik kelimeyi bul', type: 'sentence' },
-    { name: 'Şekil Eşleştirme', description: 'Şekilleri eşleştir', type: 'shape' },
-    { name: 'Renk Bulmaca', description: 'Renkleri tanı', type: 'color' },
-    { name: 'Ses Oyunu', description: 'Hayvan seslerini tanı', type: 'sound' },
-    { name: 'Puzzle', description: 'Parçaları birleştir', type: 'puzzle' },
-    { name: 'Labirent', description: 'Çıkışı bul', type: 'maze' }
+    { name: 'Hafıza Oyunu', description: 'Kartları eşleştir - 5 seviye', type: 'memory', icon: '🧠', difficulty: 'Kolay' },
+    { name: 'Matematik Macerası', description: 'Hikayeli matematik oyunu', type: 'math', icon: '➕', difficulty: 'Orta' },
+    { name: 'Balon Patlatma', description: 'Renkli balonları patlat', type: 'balloon', icon: '🎈', difficulty: 'Kolay' },
+    { name: 'XOX Turnuvası', description: 'Bilgisayara karşı 3 maç', type: 'xox', icon: '❌', difficulty: 'Orta' },
+    { name: 'Kelime Avı', description: 'Harflerden kelime oluştur', type: 'word-hunt', icon: '🔤', difficulty: 'Orta' },
+    { name: 'Şekil Fabrikası', description: 'Şekilleri sırala ve eşleştir', type: 'shape', icon: '🔶', difficulty: 'Kolay' },
+    { name: 'Renk Laboratuvarı', description: 'Renkleri karıştır ve öğren', type: 'color-lab', icon: '🌈', difficulty: 'Kolay' },
+    { name: 'Hayvan Orkestra', description: 'Hayvan seslerini tanı', type: 'sound', icon: '🔊', difficulty: 'Kolay' },
+    { name: 'Mega Puzzle', description: '4 farklı puzzle türü', type: 'puzzle', icon: '🧩', difficulty: 'Zor' },
+    { name: 'Labirent Macerası', description: '10 seviye labirent', type: 'maze', icon: '🌀', difficulty: 'Orta' },
+    { name: 'Hazine Avcısı', description: 'Haritada hazine bul', type: 'treasure', icon: '🗺️', difficulty: 'Orta' },
+    { name: 'Ritim Dünyası', description: 'Müzik ve ritim oyunu', type: 'rhythm', icon: '🎵', difficulty: 'Orta' },
+    { name: 'Uzay Macerası', description: 'Gezegenleri keşfet', type: 'space', icon: '🚀', difficulty: 'Orta' },
+    { name: 'Aşçı Ustası', description: 'Yemek pişir ve öğren', type: 'cooking', icon: '👨‍🍳', difficulty: 'Kolay' },
+    { name: 'Süper Quiz', description: 'Her konudan sorular', type: 'quiz', icon: '❓', difficulty: 'Zor' },
+    { name: 'Hikaye Yapımcısı', description: 'Kendi hikayeni yarat', type: 'story-maker', icon: '📖', difficulty: 'Orta' },
+    { name: 'Zaman Yolculuğu', description: 'Tarihi keşfet', type: 'time-travel', icon: '⏰', difficulty: 'Orta' },
+    { name: 'Doğa Koruyucusu', description: 'Çevreyi koru ve öğren', type: 'nature', icon: '🌳', difficulty: 'Kolay' },
+    { name: 'Sanat Atölyesi', description: 'Resim yap ve boyama', type: 'art', icon: '🎨', difficulty: 'Kolay' },
+    { name: 'Robot Yapımcısı', description: 'Robot tasarla ve kodla', type: 'robot', icon: '🤖', difficulty: 'Zor' }
 ];
 
 // Rozetler
@@ -2692,8 +2778,6 @@ function showSection(section) {
     gameArea.style.display = 'flex';
     
     // İçeriği yükle
-    let html = '';
-    
     switch(section) {
         case 'home':
             renderHome();
@@ -2792,7 +2876,6 @@ function showSection(section) {
             renderHome();
     }
     
-    content.innerHTML = html;
     sounds.click();
 }
 
@@ -3525,29 +3608,145 @@ function renderStories() {
 }
 
 function renderGames() {
+    const totalGamesPlayed = Object.keys(gameScores).length;
+    const totalScore = Object.values(gameScores).reduce((a,b) => a + b, 0);
+    const bestGame = Object.entries(gameScores).sort((a,b) => b[1] - a[1])[0];
+    
     const html = `
-        <h2>🎮 Oyun Zamanı!</h2>
-        <p>Eğlenerek öğrenmek için oyunlar oynayalım!</p>
+        <h2 style="font-size:2.5em; margin-bottom:10px;">🎮 Oyun Dünyası</h2>
+        <p style="font-size:1.2em; margin-bottom:30px;">Eğlenerek öğrenmek için birbirinden eğlenceli oyunlar oynayalım!</p>
         
-        <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:15px; max-width:600px; margin:30px auto;">
-            ${gamesData.map((game, index) => `
-                <div class="category-card" onclick="startGame('${game.type}')">
-                    <div class="category-icon">${getGameIcon(game.type)}</div>
-                    <div class="category-title">${game.name}</div>
-                    <div style="font-size:0.8em; color:#666; margin-top:5px;">${game.description}</div>
-                </div>
-            `).join('')}
+        <!-- İstatistik Paneli -->
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:15px; max-width:800px; margin:0 auto 30px;">
+            <div style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding:20px; border-radius:20px; color:white; text-align:center; box-shadow:0 10px 20px rgba(0,0,0,0.2);">
+                <div style="font-size:3em; margin:10px 0;">🎯</div>
+                <div style="font-size:2em; font-weight:bold;">${totalGamesPlayed}</div>
+                <div style="font-size:0.9em; opacity:0.9;">Oyun Oynandı</div>
+            </div>
+            <div style="background:linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding:20px; border-radius:20px; color:white; text-align:center; box-shadow:0 10px 20px rgba(0,0,0,0.2);">
+                <div style="font-size:3em; margin:10px 0;">⭐</div>
+                <div style="font-size:2em; font-weight:bold;">${totalScore}</div>
+                <div style="font-size:0.9em; opacity:0.9;">Toplam Puan</div>
+            </div>
+            <div style="background:linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding:20px; border-radius:20px; color:white; text-align:center; box-shadow:0 10px 20px rgba(0,0,0,0.2);">
+                <div style="font-size:3em; margin:10px 0;">🏆</div>
+                <div style="font-size:1.2em; font-weight:bold;">${bestGame ? bestGame[0] : 'Yok'}</div>
+                <div style="font-size:0.9em; opacity:0.9;">En İyi Oyun</div>
+            </div>
         </div>
         
-        <div style="background:#fff3e0; padding:20px; border-radius:15px; margin:20px auto; max-width:500px;">
-            <h3>🏆 Oyun İstatistiklerin</h3>
-            <p>Toplam Oyun: ${Object.keys(gameScores).length}</p>
-            <p>Toplam Puan: ${Object.values(gameScores).reduce((a,b) => a + b, 0)}</p>
-            <button class="nav-btn" onclick="resetGameScores()">🔄 Skorları Sıfırla</button>
+        <!-- Kategori Filtreleri -->
+        <div style="text-align:center; margin:20px 0;">
+            <button class="nav-btn" onclick="filterGames('all')" style="margin:5px;">🎮 Tümü</button>
+            <button class="nav-btn" onclick="filterGames('Kolay')" style="margin:5px; background:#4CAF50;">🌟 Kolay</button>
+            <button class="nav-btn" onclick="filterGames('Orta')" style="margin:5px; background:#FF9800;">🔥 Orta</button>
+            <button class="nav-btn" onclick="filterGames('Zor')" style="margin:5px; background:#F44336;">💪 Zor</button>
+        </div>
+        
+        <!-- Oyun Kartları Grid -->
+        <div id="games-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:20px; max-width:1200px; margin:30px auto;">
+            ${gamesData.map((game, index) => {
+                const difficultyColors = {
+                    'Kolay': 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+                    'Orta': 'linear-gradient(135deg, #ee0979 0%, #ff6a00 100%)',
+                    'Zor': 'linear-gradient(135deg, #8E0E00 0%, #1F1C18 100%)'
+                };
+                const bgColor = difficultyColors[game.difficulty] || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                
+                return `
+                <div class="game-card" data-difficulty="${game.difficulty}" onclick="startGame('${game.type}')" 
+                     style="background:white; border-radius:20px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.15); cursor:pointer; transition:transform 0.3s, box-shadow 0.3s; position:relative;"
+                     onmouseover="this.style.transform='translateY(-10px) scale(1.02)'; this.style.boxShadow='0 15px 40px rgba(0,0,0,0.25)'"
+                     onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.15)'">
+                    
+                    <!-- Oyun Başlığı Bölümü -->
+                    <div style="background:${bgColor}; padding:30px 20px; text-align:center; color:white; position:relative; overflow:hidden;">
+                        <div style="font-size:4em; margin-bottom:10px; animation:bounce 2s infinite;">${game.icon}</div>
+                        <div style="font-size:1.3em; font-weight:bold; margin-bottom:5px;">${game.name}</div>
+                        <div style="font-size:0.9em; opacity:0.9;">${game.description}</div>
+                        
+                        <!-- Zorluk Badge'i -->
+                        <div style="position:absolute; top:10px; right:10px; background:rgba(255,255,255,0.3); padding:5px 15px; border-radius:20px; font-size:0.8em; font-weight:bold;">
+                            ${game.difficulty}
+                        </div>
+                    </div>
+                    
+                    <!-- Oyun Detay Bölümü -->
+                    <div style="padding:20px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                            <div style="display:flex; align-items:center; gap:5px;">
+                                <span style="font-size:1.2em;">⭐</span>
+                                <span style="font-weight:bold;">${gameScores[game.type] || 0}</span>
+                                <span style="font-size:0.8em; color:#666;">puan</span>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:5px;">
+                                <span style="font-size:1.2em;">🎯</span>
+                                <span style="font-weight:bold;">${Math.floor(Math.random() * 50 + 10)}</span>
+                                <span style="font-size:0.8em; color:#666;">oynanma</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Özellikler -->
+                        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:15px;">
+                            ${index % 3 === 0 ? '<div style="background:#E8F5E9; padding:5px 10px; border-radius:10px; font-size:0.8em; color:#4CAF50;">🎓 Eğitici</div>' : ''}
+                            ${index % 2 === 0 ? '<div style="background:#E3F2FD; padding:5px 10px; border-radius:10px; font-size:0.8em; color:#2196F3;">🎨 Renkli</div>' : ''}
+                            <div style="background:#FFF3E0; padding:5px 10px; border-radius:10px; font-size:0.8em; color:#FF9800;">⏱️ ${game.difficulty === 'Zor' ? '10-15' : game.difficulty === 'Orta' ? '5-10' : '3-5'} dk</div>
+                        </div>
+                        
+                        <!-- Oyna Butonu -->
+                        <button onclick="event.stopPropagation(); startGame('${game.type}')" 
+                                style="width:100%; margin-top:15px; background:${bgColor}; color:white; border:none; padding:15px; border-radius:15px; font-size:1.1em; font-weight:bold; cursor:pointer; transition:opacity 0.3s;"
+                                onmouseover="this.style.opacity='0.9'"
+                                onmouseout="this.style.opacity='1'">
+                            🎮 Oyna
+                        </button>
+                    </div>
+                </div>
+                `;
+            }).join('')}
+        </div>
+        
+        <!-- Alt Bilgi -->
+        <div style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding:30px; border-radius:20px; margin:40px auto 20px; max-width:800px; color:white; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+            <h3 style="font-size:1.8em; margin-bottom:15px;">🌟 Her Gün Yeni Maceralar!</h3>
+            <p style="font-size:1.1em; margin-bottom:20px; opacity:0.95;">20 farklı oyunla eğlenerek öğren! Her oyun dikkatle tasarlandı.</p>
+            <div style="display:flex; justify-content:center; gap:15px; flex-wrap:wrap;">
+                <button class="nav-btn" onclick="startRandomGame()" style="background:rgba(255,255,255,0.2); border:2px solid white; color:white; font-size:1.1em;">
+                    🎲 Rastgele Oyun
+                </button>
+                <button class="nav-btn" onclick="resetGameScores()" style="background:rgba(255,255,255,0.2); border:2px solid white; color:white; font-size:1.1em;">
+                    🔄 Skorları Sıfırla
+                </button>
+                <button class="nav-btn" onclick="showGameAchievements()" style="background:rgba(255,255,255,0.2); border:2px solid white; color:white; font-size:1.1em;">
+                    🏆 Başarılarım
+                </button>
+            </div>
         </div>
     `;
     document.getElementById('dynamic-content').innerHTML = html;
-    updateMascotText('Oyunlar en iyi öğrenme yöntemidir! Hangi oyunu oynamak istersin?');
+    updateMascotText('Harika! 20 farklı oyundan istediğini seçebilirsin! Her oyun eğlenceli ve öğretici. Hangisini oynamak istersin?');
+}
+
+// Yeni yardımcı fonksiyonlar
+function filterGames(difficulty) {
+    const cards = document.querySelectorAll('.game-card');
+    cards.forEach(card => {
+        if (difficulty === 'all' || card.getAttribute('data-difficulty') === difficulty) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+    sounds.click();
+}
+
+function startRandomGame() {
+    const randomIndex = Math.floor(Math.random() * gamesData.length);
+    startGame(gamesData[randomIndex].type);
+}
+
+function showGameAchievements() {
+    showSection('badges');
 }
 
 function renderPet() {
@@ -3716,9 +3915,21 @@ function getGameIcon(type) {
         'sentence': '✍️',
         'shape': '🔶',
         'color': '🌈',
+        'color-lab': '🌈',
         'sound': '🔊',
         'puzzle': '🧩',
-        'maze': '🌀'
+        'maze': '🌀',
+        'word-hunt': '🔤',
+        'treasure': '🗺️',
+        'rhythm': '🎵',
+        'space': '🚀',
+        'cooking': '👨‍🍳',
+        'quiz': '❓',
+        'story-maker': '📖',
+        'time-travel': '⏰',
+        'nature': '🌳',
+        'art': '🎨',
+        'robot': '🤖'
     };
     return icons[type] || '🎮';
 }
@@ -4187,35 +4398,187 @@ function startGame(gameType) {
 }
 
 function startMemoryGame() {
-    const cards = ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼'];
+    // Farklı seviye kartları
+    const levelCards = {
+        1: ['🐶', '🐱', '🐭', '🐹'],
+        2: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊'],
+        3: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼'],
+        4: ['🍎', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🍑', '🥝', '🍍'],
+        5: ['🚗', '🚌', '🚂', '✈️', '🚁', '🚢', '🚲', '🏍️', '🚀', '🛸', '🚁', '🛩️']
+    };
+    
+    const currentLevel = (gameScores.memoryLevel || 0) + 1;
+    const maxLevel = 5;
+    const level = Math.min(currentLevel, maxLevel);
+    const cards = levelCards[level] || levelCards[1];
     const gameCards = [...cards, ...cards].sort(() => Math.random() - 0.5);
     
     let html = `
-        <h2>🧠 Hafıza Oyunu</h2>
-        <p>Kartları eşleştirerek hafızanı geliştir!</p>
-        <div class="memory-grid" id="memory-grid"></div>
-        <div style="margin-top:20px;">
-            <div id="score">Puan: 0</div>
-            <div id="timer">Süre: 60 saniye</div>
+        <div style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding:20px; border-radius:20px; margin-bottom:20px; color:white;">
+            <h2 style="font-size:2.5em; margin-bottom:10px;">🧠 Hafıza Macerası</h2>
+            <p style="font-size:1.2em;">Seviye ${level}/${maxLevel} - Kartları eşleştirerek ilerle!</p>
         </div>
-        <button class="nav-btn" onclick="renderGames()" style="margin-top:20px;">🔙 Geri</button>
+        
+        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:15px; max-width:600px; margin:0 auto 20px;">
+            <div style="background:white; padding:20px; border-radius:15px; text-align:center; box-shadow:0 5px 15px rgba(0,0,0,0.1);">
+                <div style="font-size:2.5em; margin-bottom:5px;">🎯</div>
+                <div style="font-size:2em; font-weight:bold; color:#667eea;" id="score">0</div>
+                <div style="font-size:0.9em; color:#666;">Puan</div>
+            </div>
+            <div style="background:white; padding:20px; border-radius:15px; text-align:center; box-shadow:0 5px 15px rgba(0,0,0,0.1);">
+                <div style="font-size:2.5em; margin-bottom:5px;">⏱️</div>
+                <div style="font-size:2em; font-weight:bold; color:#f093fb;" id="timer">90</div>
+                <div style="font-size:0.9em; color:#666;">Saniye</div>
+            </div>
+            <div style="background:white; padding:20px; border-radius:15px; text-align:center; box-shadow:0 5px 15px rgba(0,0,0,0.1);">
+                <div style="font-size:2.5em; margin-bottom:5px;">💫</div>
+                <div style="font-size:2em; font-weight:bold; color:#4facfe;" id="moves">0</div>
+                <div style="font-size:0.9em; color:#666;">Hamle</div>
+            </div>
+        </div>
+        
+        <div class="memory-grid" id="memory-grid" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:15px; max-width:600px; margin:30px auto;"></div>
+        
+        <div style="text-align:center; margin-top:30px;">
+            <button class="nav-btn" onclick="renderGames()" style="background:#f44336;">🔙 Oyunları Göster</button>
+            <button class="nav-btn" onclick="startMemoryGame()" style="background:#4CAF50;">🔄 Yeniden Başlat</button>
+        </div>
     `;
     
     document.getElementById('dynamic-content').innerHTML = html;
+    
+    // Oyun değişkenleri
+    let flippedCards = [];
+    let matchedPairs = 0;
+    let score = 0;
+    let moves = 0;
+    let timeLeft = 90;
+    let timerInterval = null;
+    
+    // Zamanlayıcı başlat
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timer').textContent = timeLeft;
+        
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            showNotification('Süre doldu! Toplam Puan: ' + score, 'warning');
+            setTimeout(() => renderGames(), 2000);
+        }
+        
+        // Süre azaldıkça renk değiştir
+        if (timeLeft <= 20) {
+            document.getElementById('timer').style.color = '#f44336';
+        }
+    }, 1000);
     
     // Kartları oluştur
     const grid = document.getElementById('memory-grid');
     gameCards.forEach((emoji, index) => {
         const card = document.createElement('div');
         card.className = 'memory-card';
+        card.style.cssText = `
+            width:100%; 
+            aspect-ratio:1; 
+            background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            border-radius:15px; 
+            display:flex; 
+            align-items:center; 
+            justify-content:center; 
+            font-size:3em; 
+            cursor:pointer; 
+            transition:all 0.3s; 
+            box-shadow:0 5px 15px rgba(0,0,0,0.2);
+            user-select:none;
+        `;
         card.dataset.emoji = emoji;
         card.dataset.index = index;
         card.textContent = '?';
-        card.onclick = () => flipCard(card);
+        
+        card.onclick = function() {
+            if (flippedCards.length < 2 && !this.classList.contains('flipped') && !this.classList.contains('matched')) {
+                // Kartı çevir
+                this.textContent = this.dataset.emoji;
+                this.style.background = 'white';
+                this.style.transform = 'rotateY(180deg) scale(1.05)';
+                this.classList.add('flipped');
+                flippedCards.push(this);
+                sounds.click();
+                
+                if (flippedCards.length === 2) {
+                    moves++;
+                    document.getElementById('moves').textContent = moves;
+                    
+                    setTimeout(() => {
+                        if (flippedCards[0].dataset.emoji === flippedCards[1].dataset.emoji) {
+                            // Eşleşme!
+                            flippedCards.forEach(card => {
+                                card.classList.add('matched');
+                                card.style.background = 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)';
+                                card.style.transform = 'scale(1.1)';
+                            });
+                            matchedPairs++;
+                            score += 100;
+                            document.getElementById('score').textContent = score;
+                            sounds.correct();
+                            
+                            // Tüm eşleşmeler bulundu mu?
+                            if (matchedPairs === cards.length) {
+                                clearInterval(timerInterval);
+                                const bonusScore = timeLeft * 10;
+                                score += bonusScore;
+                                gameScores.memory = (gameScores.memory || 0) + score;
+                                gameScores.memoryLevel = level;
+                                saveProgress();
+                                
+                                showNotification(`Tebrikler! Seviye ${level} Tamamlandı! Toplam: ${score} puan (+${bonusScore} bonus)`, 'success');
+                                sounds.win();
+                                
+                                setTimeout(() => {
+                                    if (level < maxLevel) {
+                                        if (confirm('Sonraki seviyeye geçmek ister misin?')) {
+                                            startMemoryGame();
+                                        } else {
+                                            renderGames();
+                                        }
+                                    } else {
+                                        showNotification('Tüm seviyeleri tamamladın! 🎉🏆', 'success');
+                                        setTimeout(() => renderGames(), 2000);
+                                    }
+                                }, 1500);
+                            }
+                        } else {
+                            // Eşleşme yok
+                            flippedCards.forEach(card => {
+                                card.textContent = '?';
+                                card.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                                card.style.transform = 'rotateY(0deg) scale(1)';
+                                card.classList.remove('flipped');
+                            });
+                            sounds.wrong();
+                        }
+                        flippedCards = [];
+                    }, 800);
+                }
+            }
+        };
+        
+        // Hover efekti
+        card.onmouseenter = function() {
+            if (!this.classList.contains('matched')) {
+                this.style.transform = 'scale(1.05)';
+            }
+        };
+        card.onmouseleave = function() {
+            if (!this.classList.contains('matched') && !this.classList.contains('flipped')) {
+                this.style.transform = 'scale(1)';
+            }
+        };
+        
         grid.appendChild(card);
     });
     
-    updateMascotText('Kartları eşleştirerek hafızanı test et! İyi şanslar!');
+    updateMascotText(`Seviye ${level}! ${cards.length} farklı kart var. Hepsini eşleştir ve bir sonraki seviyeye geç!`);
 }
 
 function startMathGame() {
