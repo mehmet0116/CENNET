@@ -7714,7 +7714,7 @@ function startRobotGame() {
                         <label class="control-label">
                             Scale: <span class="slider-value" id="scale-value">1.0</span>
                         </label>
-                        <input type="range" class="slider-control" min="0.5" max="2" step="0.1" value="1"
+                        <input type="range" id="scale-slider" class="slider-control" min="0.5" max="2" step="0.1" value="1"
                                oninput="updatePartScale(this.value)">
                     </div>
                     
@@ -7722,7 +7722,7 @@ function startRobotGame() {
                         <label class="control-label">
                             Rotation: <span class="slider-value" id="rotation-value">0°</span>
                         </label>
-                        <input type="range" class="slider-control" min="-180" max="180" step="15" value="0"
+                        <input type="range" id="rotation-slider" class="slider-control" min="-180" max="180" step="15" value="0"
                                oninput="updatePartRotation(this.value)">
                     </div>
                     
@@ -7808,7 +7808,13 @@ window.switchRobotTab = function(tab) {
     
     // Update tab buttons
     document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
+    // Find and activate the clicked button
+    const buttons = document.querySelectorAll('.tab-btn');
+    const tabNames = ['heads', 'torsos', 'arms', 'legs', 'weapons'];
+    const tabIndex = tabNames.indexOf(tab);
+    if (tabIndex >= 0 && buttons[tabIndex]) {
+        buttons[tabIndex].classList.add('active');
+    }
     
     // Load parts for this tab
     const container = document.getElementById('parts-container');
@@ -8104,9 +8110,9 @@ function updateControlsForSelectedPart() {
     const part = window.robotState.parts[window.robotState.selectedPart];
     
     document.getElementById('part-color').value = part.color;
-    document.querySelector('input[type="range"][oninput*="Scale"]').value = part.scale;
+    document.getElementById('scale-slider').value = part.scale;
     document.getElementById('scale-value').textContent = part.scale.toFixed(1);
-    document.querySelector('input[type="range"][oninput*="Rotation"]').value = part.rotation;
+    document.getElementById('rotation-slider').value = part.rotation;
     document.getElementById('rotation-value').textContent = part.rotation + '°';
 }
 
@@ -8205,22 +8211,57 @@ window.saveRobotDesign = function() {
 window.downloadRobotImage = function() {
     const assembly = document.getElementById('robot-assembly');
     
-    // Use html2canvas-like approach with SVG
-    const svgData = assembly.innerHTML;
+    // Create a canvas for the robot image
     const canvas = document.createElement('canvas');
     canvas.width = 800;
     canvas.height = 900;
     const ctx = canvas.getContext('2d');
     
-    // Fill background
-    ctx.fillStyle = '#16213e';
+    // Fill background with gradient
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, '#1a1a2e');
+    gradient.addColorStop(1, '#16213e');
+    ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     // Add title
     ctx.fillStyle = '#4facfe';
     ctx.font = 'bold 40px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('MY ROBOT CREATION', canvas.width / 2, 50);
+    ctx.fillText('MY ROBOT CREATION', canvas.width / 2, 60);
+    
+    // Add subtitle
+    ctx.fillStyle = '#a8d8ff';
+    ctx.font = '20px Arial';
+    ctx.fillText('Made with Advanced Robot Maker', canvas.width / 2, 95);
+    
+    // Add robot info text (since we can't easily render SVG without external libraries)
+    ctx.fillStyle = '#fff';
+    ctx.font = '24px Arial';
+    ctx.fillText('🤖 Custom Robot Design 🤖', canvas.width / 2, 450);
+    
+    const state = window.robotState.parts;
+    ctx.font = '18px Arial';
+    ctx.fillStyle = '#4facfe';
+    let yPos = 500;
+    
+    ctx.fillText(`Head: ${state.head.type}`, canvas.width / 2, yPos);
+    yPos += 30;
+    ctx.fillText(`Torso: ${state.torso.type}`, canvas.width / 2, yPos);
+    yPos += 30;
+    ctx.fillText(`Arms: ${state.leftArm.type}`, canvas.width / 2, yPos);
+    yPos += 30;
+    ctx.fillText(`Legs: ${state.leftLeg.type}`, canvas.width / 2, yPos);
+    yPos += 30;
+    ctx.fillText(`Weapon: ${state.weapon.type}`, canvas.width / 2, yPos);
+    
+    // Add timestamp
+    ctx.fillStyle = '#666';
+    ctx.font = '14px Arial';
+    ctx.fillText(new Date().toLocaleString(), canvas.width / 2, 850);
+    
+    // Note: For full SVG rendering, consider using libraries like html2canvas or dom-to-image
+    // This simplified version provides a downloadable design summary
     
     // Create download link
     const link = document.createElement('a');
@@ -8230,7 +8271,7 @@ window.downloadRobotImage = function() {
         link.href = URL.createObjectURL(blob);
         link.click();
         sounds.win();
-        showNotification('📸 Robot image downloaded!', 'success');
+        showNotification('📸 Robot design summary downloaded!', 'success');
     });
     
     gameScores.robot = (gameScores.robot || 0) + 25;
