@@ -7265,13 +7265,13 @@ function startRobotGame() {
     if (!window.robotState) {
         window.robotState = {
             parts: {
-                head: { type: 'Classic', color: '#4a90e2', scale: 1, rotation: 0 },
-                torso: { type: 'Standard', color: '#3a3a3a', scale: 1, rotation: 0 },
-                leftArm: { type: 'Basic', color: '#5a5a5a', scale: 1, rotation: 0 },
-                rightArm: { type: 'Basic', color: '#5a5a5a', scale: 1, rotation: 0 },
-                leftLeg: { type: 'Default', color: '#2a2a2a', scale: 1, rotation: 0 },
-                rightLeg: { type: 'Default', color: '#2a2a2a', scale: 1, rotation: 0 },
-                weapon: { type: 'None', color: '#ff6b6b', scale: 1, rotation: 0 }
+                head: { type: 'Klasik', color: '#4a90e2', scale: 1, rotation: 0 },
+                torso: { type: 'Standart', color: '#3a3a3a', scale: 1, rotation: 0 },
+                leftArm: { type: 'Temel', color: '#5a5a5a', scale: 1, rotation: 0 },
+                rightArm: { type: 'Temel', color: '#5a5a5a', scale: 1, rotation: 0 },
+                leftLeg: { type: 'Varsayılan', color: '#2a2a2a', scale: 1, rotation: 0 },
+                rightLeg: { type: 'Varsayılan', color: '#2a2a2a', scale: 1, rotation: 0 },
+                weapon: { type: 'Yok', color: '#ff6b6b', scale: 1, rotation: 0 }
             },
             activeTab: 'heads',
             selectedPart: 'head'
@@ -7671,21 +7671,21 @@ function startRobotGame() {
         
         <div class="robot-workshop">
             <div class="workshop-header">
-                <h1 class="workshop-title">⚙️ ADVANCED ROBOT MAKER ⚙️</h1>
-                <p class="workshop-subtitle">Build Your Ultimate Robot Masterpiece</p>
+                <h1 class="workshop-title">⚙️ GELİŞMİŞ ROBOT YAPIMCISI ⚙️</h1>
+                <p class="workshop-subtitle">Kendi Robot Başyapıtını İnşa Et</p>
             </div>
             
             <div class="workshop-container">
                 <!-- Left Panel: Parts Selection -->
                 <div class="parts-panel">
-                    <h3 style="margin-bottom: 15px; color: #4facfe;">🔧 Robot Parts</h3>
+                    <h3 style="margin-bottom: 15px; color: #4facfe;">🔧 Robot Parçaları</h3>
                     
                     <div class="tab-buttons">
-                        <button class="tab-btn active" onclick="switchRobotTab('heads')">Heads</button>
-                        <button class="tab-btn" onclick="switchRobotTab('torsos')">Torsos</button>
-                        <button class="tab-btn" onclick="switchRobotTab('arms')">Arms</button>
-                        <button class="tab-btn" onclick="switchRobotTab('legs')">Legs</button>
-                        <button class="tab-btn" onclick="switchRobotTab('weapons')">Weapons</button>
+                        <button class="tab-btn active" onclick="switchRobotTab('heads')">Kafalar</button>
+                        <button class="tab-btn" onclick="switchRobotTab('torsos')">Gövdeler</button>
+                        <button class="tab-btn" onclick="switchRobotTab('arms')">Kollar</button>
+                        <button class="tab-btn" onclick="switchRobotTab('legs')">Bacaklar</button>
+                        <button class="tab-btn" onclick="switchRobotTab('weapons')">Silahlar</button>
                     </div>
                     
                     <div id="parts-container" class="parts-grid">
@@ -7702,17 +7702,17 @@ function startRobotGame() {
                 
                 <!-- Right Panel: Customization Controls -->
                 <div class="controls-panel">
-                    <h3 style="margin-bottom: 15px; color: #4facfe;">🎨 Customize</h3>
+                    <h3 style="margin-bottom: 15px; color: #4facfe;">🎨 Özelleştir</h3>
                     
                     <div class="control-section">
-                        <label class="control-label">Color</label>
+                        <label class="control-label">Renk</label>
                         <input type="color" id="part-color" class="color-picker-custom" 
                                onchange="updatePartColor(this.value)">
                     </div>
                     
                     <div class="control-section">
                         <label class="control-label">
-                            Scale: <span class="slider-value" id="scale-value">1.0</span>
+                            Boyut: <span class="slider-value" id="scale-value">1.0</span>
                         </label>
                         <input type="range" id="scale-slider" class="slider-control" min="0.5" max="2" step="0.1" value="1"
                                oninput="updatePartScale(this.value)">
@@ -7720,7 +7720,7 @@ function startRobotGame() {
                     
                     <div class="control-section">
                         <label class="control-label">
-                            Rotation: <span class="slider-value" id="rotation-value">0°</span>
+                            Döndürme: <span class="slider-value" id="rotation-value">0°</span>
                         </label>
                         <input type="range" id="rotation-slider" class="slider-control" min="-180" max="180" step="15" value="0"
                                oninput="updatePartRotation(this.value)">
@@ -7728,20 +7728,20 @@ function startRobotGame() {
                     
                     <div class="action-buttons">
                         <button class="action-btn success" onclick="saveRobotDesign()">
-                            💾 Save Robot
+                            💾 Robotu Kaydet
                         </button>
                         <button class="action-btn primary" onclick="downloadRobotImage()">
-                            📸 Download Image
+                            📸 Görüntü İndir
                         </button>
                         <button class="action-btn primary" onclick="randomizeRobot()">
-                            🎲 Randomize
+                            🎲 Rastgele
                         </button>
                         <button class="action-btn danger" onclick="resetRobotDesign()">
-                            🔄 Reset
+                            🔄 Sıfırla
                         </button>
                         <button class="action-btn" style="background: linear-gradient(135deg, #667eea, #764ba2);" 
                                 onclick="renderGames()">
-                            🔙 Back to Games
+                            🔙 Oyunlara Dön
                         </button>
                     </div>
                 </div>
@@ -7755,50 +7755,50 @@ function startRobotGame() {
     switchRobotTab('heads');
     renderRobotAssembly();
     
-    updateMascotText('Welcome to the Advanced Robot Workshop! Design your ultimate robot with professional tools! 🤖⚙️');
+    updateMascotText('Gelişmiş Robot Atölyesine Hoş Geldiniz! Profesyonel araçlarla nihai robotunuzu tasarlayın! 🤖⚙️');
 }
 
 // Robot part definitions with realistic SVG-like representations
 window.robotParts = {
     heads: [
-        { name: 'Classic', icon: '🤖' },
-        { name: 'Combat', icon: '⚔️' },
-        { name: 'Scanner', icon: '📡' },
-        { name: 'Heavy', icon: '🛡️' },
-        { name: 'Stealth', icon: '👁️' },
-        { name: 'Elite', icon: '⭐' }
+        { name: 'Klasik', icon: '🤖' },
+        { name: 'Savaş', icon: '⚔️' },
+        { name: 'Tarayıcı', icon: '📡' },
+        { name: 'Ağır', icon: '🛡️' },
+        { name: 'Gizli', icon: '👁️' },
+        { name: 'Elit', icon: '⭐' }
     ],
     torsos: [
-        { name: 'Standard', icon: '⬛' },
-        { name: 'Armored', icon: '🛡️' },
-        { name: 'Light', icon: '💨' },
+        { name: 'Standart', icon: '⬛' },
+        { name: 'Zırhlı', icon: '🛡️' },
+        { name: 'Hafif', icon: '💨' },
         { name: 'Tank', icon: '🔲' },
-        { name: 'Reactor', icon: '⚡' },
-        { name: 'Compact', icon: '◼️' }
+        { name: 'Reaktör', icon: '⚡' },
+        { name: 'Kompakt', icon: '◼️' }
     ],
     arms: [
-        { name: 'Basic', icon: '🦾' },
-        { name: 'Drill', icon: '🔩' },
-        { name: 'Claw', icon: '✂️' },
-        { name: 'Heavy', icon: '💪' },
-        { name: 'Precision', icon: '🔧' },
-        { name: 'Powered', icon: '⚡' }
+        { name: 'Temel', icon: '🦾' },
+        { name: 'Matkap', icon: '🔩' },
+        { name: 'Pençe', icon: '✂️' },
+        { name: 'Ağır', icon: '💪' },
+        { name: 'Hassas', icon: '🔧' },
+        { name: 'Güçlü', icon: '⚡' }
     ],
     legs: [
-        { name: 'Default', icon: '🦵' },
-        { name: 'Wheels', icon: '⚙️' },
-        { name: 'Treads', icon: '🛞' },
-        { name: 'Jump', icon: '🚀' },
-        { name: 'Hover', icon: '💫' },
-        { name: 'Spider', icon: '🕷️' }
+        { name: 'Varsayılan', icon: '🦵' },
+        { name: 'Tekerlekler', icon: '⚙️' },
+        { name: 'Paletler', icon: '🛞' },
+        { name: 'Zıplama', icon: '🚀' },
+        { name: 'Hava Yastığı', icon: '💫' },
+        { name: 'Örümcek', icon: '🕷️' }
     ],
     weapons: [
-        { name: 'None', icon: '❌' },
-        { name: 'Laser', icon: '🔴' },
-        { name: 'Cannon', icon: '💥' },
-        { name: 'Sword', icon: '⚔️' },
-        { name: 'Shield', icon: '🛡️' },
-        { name: 'Blaster', icon: '🔫' }
+        { name: 'Yok', icon: '❌' },
+        { name: 'Lazer', icon: '🔴' },
+        { name: 'Top', icon: '💥' },
+        { name: 'Kılıç', icon: '⚔️' },
+        { name: 'Kalkan', icon: '🛡️' },
+        { name: 'Atıcı', icon: '🔫' }
     ]
 };
 
@@ -7899,7 +7899,7 @@ window.renderRobotAssembly = function() {
         ${renderPart('rightArm', 'robot-arm-right', 'Right Arm')}
         ${renderPart('leftLeg', 'robot-leg-left', 'Left Leg')}
         ${renderPart('rightLeg', 'robot-leg-right', 'Right Leg')}
-        ${state.weapon.type !== 'None' ? renderPart('weapon', 'robot-weapon', 'Weapon') : ''}
+        ${state.weapon.type !== 'Yok' ? renderPart('weapon', 'robot-weapon', 'Weapon') : ''}
     `;
 };
 
@@ -7908,60 +7908,60 @@ function getRobotPartSVG(partKey, type, color) {
     // Head designs
     if (partKey === 'head') {
         const designs = {
-            'Classic': `
+            'Klasik': `
                 <rect x="20" y="20" width="60" height="60" fill="${color}" stroke="#000" stroke-width="2" rx="10"/>
                 <circle cx="35" cy="40" r="8" fill="#4facfe" class="glow-effect"/>
                 <circle cx="65" cy="40" r="8" fill="#4facfe" class="glow-effect"/>
                 <rect x="30" y="60" width="40" height="5" fill="#333"/>
             `,
-            'Combat': `
+            'Savaş': `
                 <polygon points="50,10 80,30 80,70 50,80 20,70 20,30" fill="${color}" stroke="#000" stroke-width="2"/>
                 <circle cx="35" cy="45" r="6" fill="#ff0000" class="glow-effect"/>
                 <circle cx="65" cy="45" r="6" fill="#ff0000" class="glow-effect"/>
                 <rect x="40" y="25" width="20" height="8" fill="#666"/>
             `,
-            'Scanner': `
+            'Tarayıcı': `
                 <ellipse cx="50" cy="50" rx="35" ry="40" fill="${color}" stroke="#000" stroke-width="2"/>
                 <rect x="20" y="35" width="60" height="20" fill="#4facfe" opacity="0.7" class="glow-effect"/>
                 <circle cx="50" cy="45" r="15" fill="#00f2fe" class="glow-effect"/>
             `,
-            'Heavy': `
+            'Ağır': `
                 <rect x="15" y="25" width="70" height="55" fill="${color}" stroke="#000" stroke-width="3" rx="5"/>
                 <rect x="25" y="35" width="15" height="15" fill="#ff6b6b" class="glow-effect"/>
                 <rect x="60" y="35" width="15" height="15" fill="#ff6b6b" class="glow-effect"/>
                 <rect x="30" y="60" width="40" height="8" fill="#333"/>
             `,
-            'Stealth': `
+            'Gizli': `
                 <path d="M 30,20 L 70,20 L 80,50 L 70,80 L 30,80 L 20,50 Z" fill="${color}" stroke="#000" stroke-width="2"/>
                 <circle cx="40" cy="45" r="5" fill="#00ff00" class="glow-effect"/>
                 <circle cx="60" cy="45" r="5" fill="#00ff00" class="glow-effect"/>
             `,
-            'Elite': `
+            'Elit': `
                 <rect x="25" y="15" width="50" height="65" fill="${color}" stroke="#ffd700" stroke-width="3" rx="8"/>
                 <circle cx="38" cy="38" r="7" fill="#ffd700" class="glow-effect"/>
                 <circle cx="62" cy="38" r="7" fill="#ffd700" class="glow-effect"/>
                 <polygon points="50,55 40,65 60,65" fill="#ffd700"/>
             `
         };
-        return designs[type] || designs['Classic'];
+        return designs[type] || designs['Klasik'];
     }
     
     // Torso designs
     if (partKey === 'torso') {
         const designs = {
-            'Standard': `
+            'Standart': `
                 <rect x="10" y="10" width="80" height="100" fill="${color}" stroke="#000" stroke-width="2" rx="5"/>
                 <circle cx="50" cy="50" r="20" fill="#4facfe" opacity="0.5" class="glow-effect"/>
                 <rect x="20" y="25" width="10" height="60" fill="#333" opacity="0.5"/>
                 <rect x="70" y="25" width="10" height="60" fill="#333" opacity="0.5"/>
             `,
-            'Armored': `
+            'Zırhlı': `
                 <rect x="5" y="5" width="90" height="110" fill="${color}" stroke="#000" stroke-width="3" rx="3"/>
                 <rect x="15" y="15" width="70" height="20" fill="#666"/>
                 <rect x="15" y="45" width="70" height="20" fill="#666"/>
                 <rect x="15" y="75" width="70" height="20" fill="#666"/>
             `,
-            'Light': `
+            'Hafif': `
                 <path d="M 20,10 L 80,10 L 75,110 L 25,110 Z" fill="${color}" stroke="#000" stroke-width="2"/>
                 <circle cx="50" cy="40" r="15" fill="#00f2fe" class="glow-effect"/>
                 <line x1="30" y1="70" x2="70" y2="70" stroke="#4facfe" stroke-width="3"/>
@@ -7972,88 +7972,88 @@ function getRobotPartSVG(partKey, type, color) {
                 <rect x="20" y="60" width="60" height="30" fill="#666"/>
                 <circle cx="50" cy="75" r="10" fill="#ff6b6b" class="glow-effect"/>
             `,
-            'Reactor': `
+            'Reaktör': `
                 <rect x="15" y="10" width="70" height="100" fill="${color}" stroke="#000" stroke-width="2" rx="10"/>
                 <circle cx="50" cy="60" r="25" fill="#4facfe" class="glow-effect"/>
                 <circle cx="50" cy="60" r="18" fill="#00f2fe" class="glow-effect"/>
                 <circle cx="50" cy="60" r="10" fill="#fff" class="glow-effect"/>
             `,
-            'Compact': `
+            'Kompakt': `
                 <rect x="25" y="20" width="50" height="80" fill="${color}" stroke="#000" stroke-width="2" rx="5"/>
                 <rect x="30" y="30" width="40" height="10" fill="#4facfe" opacity="0.7"/>
                 <rect x="30" y="50" width="40" height="10" fill="#4facfe" opacity="0.7"/>
                 <rect x="30" y="70" width="40" height="10" fill="#4facfe" opacity="0.7"/>
             `
         };
-        return designs[type] || designs['Standard'];
+        return designs[type] || designs['Standart'];
     }
     
     // Arm designs
     if (partKey === 'leftArm' || partKey === 'rightArm') {
         const designs = {
-            'Basic': `
+            'Temel': `
                 <rect x="25" y="5" width="30" height="80" fill="${color}" stroke="#000" stroke-width="2" rx="15"/>
                 <circle cx="40" cy="70" r="12" fill="#333"/>
             `,
-            'Drill': `
+            'Matkap': `
                 <rect x="25" y="5" width="30" height="60" fill="${color}" stroke="#000" stroke-width="2" rx="5"/>
                 <polygon points="40,65 30,90 50,90" fill="#666" stroke="#000" stroke-width="2"/>
                 <circle cx="40" cy="75" r="5" fill="#4facfe" class="glow-effect"/>
             `,
-            'Claw': `
+            'Pençe': `
                 <rect x="30" y="5" width="20" height="50" fill="${color}" stroke="#000" stroke-width="2"/>
                 <path d="M 25,55 L 20,75 L 30,70 Z" fill="${color}" stroke="#000" stroke-width="2"/>
                 <path d="M 55,55 L 60,75 L 50,70 Z" fill="${color}" stroke="#000" stroke-width="2"/>
             `,
-            'Heavy': `
+            'Ağır': `
                 <rect x="20" y="5" width="40" height="80" fill="${color}" stroke="#000" stroke-width="3" rx="8"/>
                 <rect x="25" y="20" width="30" height="15" fill="#666"/>
                 <rect x="25" y="45" width="30" height="15" fill="#666"/>
             `,
-            'Precision': `
+            'Hassas': `
                 <rect x="30" y="5" width="20" height="70" fill="${color}" stroke="#000" stroke-width="2" rx="10"/>
                 <line x1="35" y1="75" x2="35" y2="88" stroke="#4facfe" stroke-width="3" class="glow-effect"/>
                 <line x1="45" y1="75" x2="45" y2="88" stroke="#4facfe" stroke-width="3" class="glow-effect"/>
             `,
-            'Powered': `
+            'Güçlü': `
                 <rect x="25" y="5" width="30" height="75" fill="${color}" stroke="#000" stroke-width="2" rx="12"/>
                 <circle cx="40" cy="40" r="12" fill="#ff6b6b" class="glow-effect"/>
                 <circle cx="40" cy="60" r="10" fill="#4facfe" class="glow-effect"/>
             `
         };
-        return designs[type] || designs['Basic'];
+        return designs[type] || designs['Temel'];
     }
     
     // Leg designs
     if (partKey === 'leftLeg' || partKey === 'rightLeg') {
         const designs = {
-            'Default': `
+            'Varsayılan': `
                 <rect x="20" y="5" width="30" height="80" fill="${color}" stroke="#000" stroke-width="2" rx="5"/>
                 <rect x="15" y="75" width="40" height="20" fill="#333" stroke="#000" stroke-width="2" rx="3"/>
             `,
-            'Wheels': `
+            'Tekerlekler': `
                 <rect x="25" y="5" width="25" height="50" fill="${color}" stroke="#000" stroke-width="2"/>
                 <circle cx="37" cy="70" r="20" fill="#333" stroke="#000" stroke-width="2"/>
                 <circle cx="37" cy="70" r="12" fill="#666"/>
             `,
-            'Treads': `
+            'Paletler': `
                 <rect x="20" y="5" width="35" height="60" fill="${color}" stroke="#000" stroke-width="2" rx="5"/>
                 <rect x="10" y="60" width="55" height="30" fill="#333" stroke="#000" stroke-width="2" rx="5"/>
                 <rect x="15" y="65" width="45" height="5" fill="#666"/>
                 <rect x="15" y="75" width="45" height="5" fill="#666"/>
                 <rect x="15" y="85" width="45" height="5" fill="#666"/>
             `,
-            'Jump': `
+            'Zıplama': `
                 <rect x="25" y="5" width="25" height="50" fill="${color}" stroke="#000" stroke-width="2" rx="8"/>
                 <path d="M 25,55 Q 37,75 50,55" fill="#4facfe" stroke="#000" stroke-width="2"/>
                 <circle cx="37" cy="75" r="8" fill="#ff6b6b" class="glow-effect"/>
             `,
-            'Hover': `
+            'Hava Yastığı': `
                 <rect x="25" y="5" width="25" height="45" fill="${color}" stroke="#000" stroke-width="2" rx="10"/>
                 <ellipse cx="37" cy="65" rx="25" ry="15" fill="#4facfe" opacity="0.7" class="glow-effect"/>
                 <ellipse cx="37" cy="70" rx="20" ry="10" fill="#00f2fe" class="glow-effect"/>
             `,
-            'Spider': `
+            'Örümcek': `
                 <rect x="30" y="5" width="20" height="30" fill="${color}" stroke="#000" stroke-width="2"/>
                 <line x1="30" y1="40" x2="10" y2="70" stroke="${color}" stroke-width="4"/>
                 <line x1="50" y1="40" x2="70" y2="70" stroke="${color}" stroke-width="4"/>
@@ -8061,32 +8061,32 @@ function getRobotPartSVG(partKey, type, color) {
                 <line x1="50" y1="50" x2="75" y2="80" stroke="${color}" stroke-width="4"/>
             `
         };
-        return designs[type] || designs['Default'];
+        return designs[type] || designs['Varsayılan'];
     }
     
     // Weapon designs
     if (partKey === 'weapon') {
         const designs = {
-            'Laser': `
+            'Lazer': `
                 <rect x="10" y="30" width="60" height="15" fill="${color}" stroke="#000" stroke-width="2" rx="3"/>
                 <rect x="65" y="25" width="25" height="25" fill="#ff0000" class="glow-effect"/>
                 <line x1="85" y1="37" x2="95" y2="37" stroke="#ff0000" stroke-width="5" class="glow-effect"/>
             `,
-            'Cannon': `
+            'Top': `
                 <rect x="5" y="25" width="40" height="25" fill="${color}" stroke="#000" stroke-width="2" rx="5"/>
                 <circle cx="45" cy="37" r="18" fill="#333" stroke="#000" stroke-width="2"/>
                 <rect x="55" y="30" width="35" height="14" fill="${color}" stroke="#000" stroke-width="2"/>
             `,
-            'Sword': `
+            'Kılıç': `
                 <rect x="10" y="35" width="20" height="8" fill="${color}" stroke="#000" stroke-width="2"/>
                 <rect x="28" y="20" width="60" height="5" fill="#a8d8ff" stroke="#000" stroke-width="2"/>
                 <polygon points="88,15 95,25 88,35" fill="#a8d8ff" stroke="#000" stroke-width="2"/>
             `,
-            'Shield': `
+            'Kalkan': `
                 <path d="M 20,15 Q 50,10 80,15 L 75,60 Q 50,70 25,60 Z" fill="${color}" stroke="#000" stroke-width="3"/>
                 <circle cx="50" cy="37" r="12" fill="#4facfe" class="glow-effect"/>
             `,
-            'Blaster': `
+            'Atıcı': `
                 <rect x="15" y="28" width="50" height="18" fill="${color}" stroke="#000" stroke-width="2" rx="5"/>
                 <polygon points="65,30 85,37 65,44" fill="#ff6b6b"/>
                 <circle cx="75" cy="37" r="5" fill="#ff0000" class="glow-effect"/>
@@ -8174,22 +8174,22 @@ window.randomizeRobot = function() {
     renderRobotAssembly();
     updateControlsForSelectedPart();
     sounds.correct();
-    showNotification('🎲 Robot randomized! Looks amazing!', 'success');
+    showNotification('🎲 Robot rastgele oluşturuldu! Harika görünüyor!', 'success');
 };
 
 // Reset robot design
 window.resetRobotDesign = function() {
-    if (confirm('Are you sure you want to reset your robot design?')) {
+    if (confirm('Robot tasarımını sıfırlamak istediğinize emin misiniz?')) {
         window.robotState = null;
         startRobotGame();
         sounds.click();
-        showNotification('🔄 Robot design reset!', 'success');
+        showNotification('🔄 Robot tasarımı sıfırlandı!', 'success');
     }
 };
 
 // Save robot design to localStorage
 window.saveRobotDesign = function() {
-    const designName = prompt('Enter a name for your robot:') || 'My Robot';
+    const designName = prompt('Robotunuz için bir isim girin:') || 'Robotum';
     const savedRobots = JSON.parse(localStorage.getItem('savedRobots') || '[]');
     
     savedRobots.push({
@@ -8201,7 +8201,7 @@ window.saveRobotDesign = function() {
     localStorage.setItem('savedRobots', JSON.stringify(savedRobots));
     
     sounds.win();
-    showNotification(`💾 Robot "${designName}" saved successfully!`, 'success');
+    showNotification(`💾 Robot "${designName}" başarıyla kaydedildi!`, 'success');
     
     gameScores.robot = (gameScores.robot || 0) + 50;
     saveProgress();
@@ -8228,32 +8228,32 @@ window.downloadRobotImage = function() {
     ctx.fillStyle = '#4facfe';
     ctx.font = 'bold 40px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('MY ROBOT CREATION', canvas.width / 2, 60);
+    ctx.fillText('ROBOT YARATIŞIM', canvas.width / 2, 60);
     
     // Add subtitle
     ctx.fillStyle = '#a8d8ff';
     ctx.font = '20px Arial';
-    ctx.fillText('Made with Advanced Robot Maker', canvas.width / 2, 95);
+    ctx.fillText('Gelişmiş Robot Yapımcısı ile Yapıldı', canvas.width / 2, 95);
     
     // Add robot info text (since we can't easily render SVG without external libraries)
     ctx.fillStyle = '#fff';
     ctx.font = '24px Arial';
-    ctx.fillText('🤖 Custom Robot Design 🤖', canvas.width / 2, 450);
+    ctx.fillText('🤖 Özel Robot Tasarımı 🤖', canvas.width / 2, 450);
     
     const state = window.robotState.parts;
     ctx.font = '18px Arial';
     ctx.fillStyle = '#4facfe';
     let yPos = 500;
     
-    ctx.fillText(`Head: ${state.head.type}`, canvas.width / 2, yPos);
+    ctx.fillText(`Kafa: ${state.head.type}`, canvas.width / 2, yPos);
     yPos += 30;
-    ctx.fillText(`Torso: ${state.torso.type}`, canvas.width / 2, yPos);
+    ctx.fillText(`Gövde: ${state.torso.type}`, canvas.width / 2, yPos);
     yPos += 30;
-    ctx.fillText(`Arms: ${state.leftArm.type}`, canvas.width / 2, yPos);
+    ctx.fillText(`Kollar: ${state.leftArm.type}`, canvas.width / 2, yPos);
     yPos += 30;
-    ctx.fillText(`Legs: ${state.leftLeg.type}`, canvas.width / 2, yPos);
+    ctx.fillText(`Bacaklar: ${state.leftLeg.type}`, canvas.width / 2, yPos);
     yPos += 30;
-    ctx.fillText(`Weapon: ${state.weapon.type}`, canvas.width / 2, yPos);
+    ctx.fillText(`Silah: ${state.weapon.type}`, canvas.width / 2, yPos);
     
     // Add timestamp
     ctx.fillStyle = '#666';
@@ -8271,7 +8271,7 @@ window.downloadRobotImage = function() {
         link.href = URL.createObjectURL(blob);
         link.click();
         sounds.win();
-        showNotification('📸 Robot design summary downloaded!', 'success');
+        showNotification('📸 Robot tasarım özeti indirildi!', 'success');
     });
     
     gameScores.robot = (gameScores.robot || 0) + 25;
