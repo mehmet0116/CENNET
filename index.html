@@ -5641,9 +5641,15 @@ function startPuzzleType(type) {
         document.getElementById('dynamic-content').innerHTML = html;
         window.puzzleSelected = null;
         updateMascotText('Sayıları doğru sıraya koy! İki sayıya tıklayarak yerlerini değiştirebilirsin.');
-    } else {
-        showNotification('Bu puzzle türü yakında eklenecek! 🎮', 'info');
-        startPuzzleGame();
+    } else if (type === 'image') {
+        // Resim Parçala - Sliding Puzzle
+        startImagePuzzle();
+    } else if (type === 'word') {
+        // Kelime Bul - Word Search
+        startWordSearchPuzzle();
+    } else if (type === 'color') {
+        // Renk Eşleştir - Color Match
+        startColorMatchPuzzle();
     }
 }
 
@@ -5689,6 +5695,422 @@ window.checkPuzzleSolution = function() {
     } else {
         showNotification('Henüz doğru değil, devam et! 💪', 'warning');
         sounds.wrong();
+    }
+};
+
+// ===== RESİM PARÇALA (IMAGE PUZZLE) =====
+function startImagePuzzle() {
+    // 3x3 sliding puzzle with emojis
+    const emojis = ['🎨', '🌈', '⭐', '🌟', '💎', '🎭', '🎪', '🎡'];
+    let tiles = [...emojis, ''];
+    tiles = tiles.sort(() => Math.random() - 0.5);
+    
+    const html = `
+        <h2>🖼️ Resim Parçala Puzzle</h2>
+        <p>Karoları kaydırarak resmi tamamla!</p>
+        
+        <div id="image-puzzle-grid" style="display:grid; grid-template-columns:repeat(3, 100px); gap:5px; justify-content:center; margin:30px auto; background:#333; padding:10px; border-radius:15px; width:fit-content;">
+            ${tiles.map((emoji, idx) => `
+                <div class="image-puzzle-tile" data-index="${idx}" data-emoji="${emoji}"
+                     onclick="slideImageTile(${idx})"
+                     style="width:100px; height:100px; background:${emoji === '' ? '#555' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}; color:white; display:flex; align-items:center; justify-content:center; font-size:3em; border-radius:10px; cursor:pointer; user-select:none; transition:0.3s;"
+                     onmouseover="${emoji !== '' ? 'this.style.transform=\'scale(1.05)\'' : ''}"
+                     onmouseout="this.style.transform='scale(1)'">
+                    ${emoji}
+                </div>
+            `).join('')}
+        </div>
+        
+        <div style="margin:20px; padding:15px; background:rgba(102, 126, 234, 0.1); border-radius:10px; max-width:400px; margin-left:auto; margin-right:auto;">
+            <p style="font-size:1.1em;">💡 <strong>İpucu:</strong> Boş karonun yanındaki karolara tıklayarak onları kaydırabilirsin!</p>
+        </div>
+        
+        <div style="margin-top:30px;">
+            <button class="nav-btn" onclick="checkImagePuzzle()">✅ Kontrol Et</button>
+            <button class="nav-btn" onclick="startImagePuzzle()">🔄 Yeniden</button>
+            <button class="nav-btn" onclick="startPuzzleGame()">🔙 Geri</button>
+        </div>
+    `;
+    
+    document.getElementById('dynamic-content').innerHTML = html;
+    window.imagePuzzleTiles = tiles;
+    window.imagePuzzleEmojis = emojis;
+    updateMascotText('Karoları kaydırarak resmi tamamla! Boş karonun yanındakilere tıklayabilirsin! 🖼️');
+}
+
+window.slideImageTile = function(index) {
+    const tiles = window.imagePuzzleTiles;
+    const emptyIndex = tiles.indexOf('');
+    
+    // Check if tile is adjacent to empty space
+    const row = Math.floor(index / 3);
+    const col = index % 3;
+    const emptyRow = Math.floor(emptyIndex / 3);
+    const emptyCol = emptyIndex % 3;
+    
+    const isAdjacent = (Math.abs(row - emptyRow) === 1 && col === emptyCol) ||
+                       (Math.abs(col - emptyCol) === 1 && row === emptyRow);
+    
+    if (isAdjacent) {
+        // Swap tiles
+        [tiles[index], tiles[emptyIndex]] = [tiles[emptyIndex], tiles[index]];
+        sounds.click();
+        
+        // Re-render
+        const grid = document.getElementById('image-puzzle-grid');
+        grid.innerHTML = tiles.map((emoji, idx) => `
+            <div class="image-puzzle-tile" data-index="${idx}" data-emoji="${emoji}"
+                 onclick="slideImageTile(${idx})"
+                 style="width:100px; height:100px; background:${emoji === '' ? '#555' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'}; color:white; display:flex; align-items:center; justify-content:center; font-size:3em; border-radius:10px; cursor:pointer; user-select:none; transition:0.3s;"
+                 onmouseover="${emoji !== '' ? 'this.style.transform=\'scale(1.05)\'' : ''}"
+                 onmouseout="this.style.transform='scale(1)'">
+                ${emoji}
+            </div>
+        `).join('');
+    } else {
+        sounds.wrong();
+        showNotification('Bu karoyu oraya kaydıramazsın! 🚫', 'warning');
+    }
+};
+
+window.checkImagePuzzle = function() {
+    const tiles = window.imagePuzzleTiles;
+    const correctOrder = [...window.imagePuzzleEmojis, ''];
+    const isCorrect = tiles.every((tile, idx) => tile === correctOrder[idx]);
+    
+    if (isCorrect) {
+        showNotification('🎉 Harika! Resim puzzle\'ını tamamladın!', 'success');
+        gameScores['image-puzzle'] = (gameScores['image-puzzle'] || 0) + 75;
+        saveProgress();
+        sounds.win();
+    } else {
+        showNotification('Henüz tamamlanmadı! Devam et! 💪', 'warning');
+        sounds.wrong();
+    }
+};
+
+// ===== KELİME BUL (WORD SEARCH) =====
+function startWordSearchPuzzle() {
+    const words = [
+        { word: 'KEDI', color: '#E91E63' },
+        { word: 'ELMA', color: '#4CAF50' },
+        { word: 'TOP', color: '#2196F3' },
+        { word: 'GÜL', color: '#FF9800' }
+    ];
+    
+    const gridSize = 8;
+    const grid = Array(gridSize).fill(0).map(() => Array(gridSize).fill(''));
+    
+    // Place words in grid
+    words.forEach(({word}) => {
+        let placed = false;
+        let attempts = 0;
+        
+        while (!placed && attempts < 50) {
+            const horizontal = Math.random() > 0.5;
+            const row = Math.floor(Math.random() * gridSize);
+            const col = Math.floor(Math.random() * gridSize);
+            
+            if (horizontal && col + word.length <= gridSize) {
+                let canPlace = true;
+                for (let i = 0; i < word.length; i++) {
+                    if (grid[row][col + i] !== '' && grid[row][col + i] !== word[i]) {
+                        canPlace = false;
+                        break;
+                    }
+                }
+                if (canPlace) {
+                    for (let i = 0; i < word.length; i++) {
+                        grid[row][col + i] = word[i];
+                    }
+                    placed = true;
+                }
+            } else if (!horizontal && row + word.length <= gridSize) {
+                let canPlace = true;
+                for (let i = 0; i < word.length; i++) {
+                    if (grid[row + i][col] !== '' && grid[row + i][col] !== word[i]) {
+                        canPlace = false;
+                        break;
+                    }
+                }
+                if (canPlace) {
+                    for (let i = 0; i < word.length; i++) {
+                        grid[row + i][col] = word[i];
+                    }
+                    placed = true;
+                }
+            }
+            attempts++;
+        }
+    });
+    
+    // Fill empty cells with random letters
+    const letters = 'ABCDEFGHIJKLMNOPRSTUVYZÇĞİÖŞÜ';
+    for (let row = 0; row < gridSize; row++) {
+        for (let col = 0; col < gridSize; col++) {
+            if (grid[row][col] === '') {
+                grid[row][col] = letters[Math.floor(Math.random() * letters.length)];
+            }
+        }
+    }
+    
+    const html = `
+        <h2>🔤 Kelime Bul Puzzle</h2>
+        <p>Gizli kelimeleri bul!</p>
+        
+        <div style="margin:20px auto; max-width:600px;">
+            <div style="background:linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding:20px; border-radius:15px; margin-bottom:20px;">
+                <div style="font-size:1.3em; color:white; margin-bottom:15px; font-weight:bold;">Aranacak Kelimeler:</div>
+                <div style="display:flex; gap:15px; justify-content:center; flex-wrap:wrap;">
+                    ${words.map(({word, color}) => `
+                        <div id="word-${word}" style="background:white; padding:10px 20px; border-radius:10px; font-weight:bold; font-size:1.2em; color:${color};">
+                            ${word}
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            
+            <div id="word-search-grid" style="display:grid; grid-template-columns:repeat(${gridSize}, 40px); gap:2px; justify-content:center; background:#333; padding:10px; border-radius:15px; width:fit-content; margin:0 auto;">
+                ${grid.map((row, rowIdx) => 
+                    row.map((letter, colIdx) => `
+                        <div class="word-search-cell" data-row="${rowIdx}" data-col="${colIdx}" data-letter="${letter}"
+                             onclick="toggleWordSearchCell(${rowIdx}, ${colIdx})"
+                             style="width:40px; height:40px; background:white; display:flex; align-items:center; justify-content:center; font-size:1.2em; font-weight:bold; border-radius:5px; cursor:pointer; user-select:none; transition:0.2s;"
+                             onmouseover="this.style.background='#E3F2FD'"
+                             onmouseout="if (!this.classList.contains('selected')) this.style.background='white'">
+                            ${letter}
+                        </div>
+                    `).join('')
+                ).join('')}
+            </div>
+        </div>
+        
+        <div style="margin-top:30px;">
+            <button class="nav-btn" onclick="checkWordSearch()">✅ Kontrol Et</button>
+            <button class="nav-btn" onclick="startWordSearchPuzzle()">🔄 Yeniden</button>
+            <button class="nav-btn" onclick="startPuzzleGame()">🔙 Geri</button>
+        </div>
+    `;
+    
+    document.getElementById('dynamic-content').innerHTML = html;
+    window.wordSearchGrid = grid;
+    window.wordSearchWords = words;
+    window.wordSearchSelected = [];
+    window.wordSearchFoundWords = [];
+    updateMascotText('Kelimeleri bul! Harflere tıklayarak seç! 🔤');
+}
+
+window.toggleWordSearchCell = function(row, col) {
+    const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+    const key = `${row}-${col}`;
+    
+    if (cell.classList.contains('selected')) {
+        cell.classList.remove('selected');
+        cell.style.background = 'white';
+        window.wordSearchSelected = window.wordSearchSelected.filter(k => k !== key);
+    } else {
+        cell.classList.add('selected');
+        cell.style.background = '#4CAF50';
+        cell.style.color = 'white';
+        window.wordSearchSelected.push(key);
+    }
+    sounds.click();
+};
+
+window.checkWordSearch = function() {
+    const selected = window.wordSearchSelected;
+    const grid = window.wordSearchGrid;
+    
+    // Get selected letters
+    let selectedWord = selected.map(key => {
+        const [row, col] = key.split('-').map(Number);
+        return grid[row][col];
+    }).join('');
+    
+    // Check if selected word matches any word
+    const foundWord = window.wordSearchWords.find(({word}) => 
+        word === selectedWord || word === selectedWord.split('').reverse().join('')
+    );
+    
+    if (foundWord && !window.wordSearchFoundWords.includes(foundWord.word)) {
+        showNotification(`🎉 "${foundWord.word}" kelimesini buldun!`, 'success');
+        window.wordSearchFoundWords.push(foundWord.word);
+        
+        // Mark word as found
+        document.getElementById(`word-${foundWord.word}`).style.textDecoration = 'line-through';
+        document.getElementById(`word-${foundWord.word}`).style.opacity = '0.5';
+        
+        gameScores['word-search'] = (gameScores['word-search'] || 0) + 25;
+        saveProgress();
+        sounds.win();
+        
+        // Clear selection
+        window.wordSearchSelected.forEach(key => {
+            const [row, col] = key.split('-').map(Number);
+            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            cell.style.background = foundWord.color;
+        });
+        window.wordSearchSelected = [];
+        
+        // Check if all words found
+        if (window.wordSearchFoundWords.length === window.wordSearchWords.length) {
+            setTimeout(() => {
+                showNotification('🏆 Tüm kelimeleri buldun! Harika iş!', 'success');
+                sounds.win();
+            }, 500);
+        }
+    } else if (foundWord && window.wordSearchFoundWords.includes(foundWord.word)) {
+        showNotification('Bu kelimeyi zaten buldun! 🔄', 'info');
+    } else {
+        showNotification('Bu doğru bir kelime değil! Tekrar dene! ❌', 'warning');
+        sounds.wrong();
+        
+        // Clear selection
+        window.wordSearchSelected.forEach(key => {
+            const [row, col] = key.split('-').map(Number);
+            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            cell.classList.remove('selected');
+            cell.style.background = 'white';
+            cell.style.color = 'black';
+        });
+        window.wordSearchSelected = [];
+    }
+};
+
+// ===== RENK EŞLEŞTİR (COLOR MATCH) =====
+function startColorMatchPuzzle() {
+    const colorPairs = [
+        { name: 'Kırmızı', color: '#F44336', emoji: '🔴' },
+        { name: 'Mavi', color: '#2196F3', emoji: '🔵' },
+        { name: 'Yeşil', color: '#4CAF50', emoji: '🟢' },
+        { name: 'Sarı', color: '#FFEB3B', emoji: '🟡' },
+        { name: 'Mor', color: '#9C27B0', emoji: '🟣' },
+        { name: 'Turuncu', color: '#FF9800', emoji: '🟠' }
+    ];
+    
+    // Create cards (2 of each)
+    let cards = [];
+    colorPairs.forEach(color => {
+        cards.push({ ...color, id: `${color.name}-1`, type: 'color' });
+        cards.push({ ...color, id: `${color.name}-2`, type: 'name' });
+    });
+    
+    // Shuffle cards
+    cards = cards.sort(() => Math.random() - 0.5);
+    
+    const html = `
+        <h2>🎨 Renk Eşleştir Puzzle</h2>
+        <p>Renkleri isimleriyle eşleştir!</p>
+        
+        <div style="margin:20px auto; max-width:700px;">
+            <div style="background:linear-gradient(135deg, #fa709a 0%, #fee140 100%); padding:20px; border-radius:15px; margin-bottom:20px; color:white;">
+                <div style="font-size:1.5em; font-weight:bold;">Eşleşen Çiftler: <span id="color-match-score">0</span>/${colorPairs.length}</div>
+            </div>
+            
+            <div id="color-match-grid" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:15px; max-width:600px; margin:0 auto;">
+                ${cards.map((card, idx) => `
+                    <div class="color-match-card" data-index="${idx}" data-name="${card.name}" data-type="${card.type}"
+                         onclick="selectColorMatchCard(${idx})"
+                         style="aspect-ratio:1; background:white; border-radius:15px; display:flex; flex-direction:column; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 8px rgba(0,0,0,0.1); transition:0.3s; border:3px solid transparent; padding:10px;"
+                         onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.2)'"
+                         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)'">
+                        ${card.type === 'color' ? 
+                            `<div style="width:60px; height:60px; background:${card.color}; border-radius:50%; box-shadow:0 2px 4px rgba(0,0,0,0.2);"></div>
+                             <div style="font-size:2em; margin-top:5px;">${card.emoji}</div>` :
+                            `<div style="font-size:1.3em; font-weight:bold; color:#333; text-align:center;">${card.name}</div>`
+                        }
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+        
+        <div style="margin:20px; padding:15px; background:rgba(250, 112, 154, 0.1); border-radius:10px; max-width:500px; margin-left:auto; margin-right:auto;">
+            <p style="font-size:1.1em;">💡 <strong>Nasıl Oynanır:</strong> Bir renk ve bir isim kartı seç. Eşleşiyorlarsa kaybolacaklar!</p>
+        </div>
+        
+        <div style="margin-top:30px;">
+            <button class="nav-btn" onclick="startColorMatchPuzzle()">🔄 Yeniden</button>
+            <button class="nav-btn" onclick="startPuzzleGame()">🔙 Geri</button>
+        </div>
+    `;
+    
+    document.getElementById('dynamic-content').innerHTML = html;
+    window.colorMatchCards = cards;
+    window.colorMatchSelected = [];
+    window.colorMatchScore = 0;
+    window.colorMatchMatched = [];
+    updateMascotText('Renkleri isimleriyle eşleştir! 2 kart seç! 🎨');
+}
+
+window.selectColorMatchCard = function(index) {
+    // Check if already matched
+    if (window.colorMatchMatched.includes(index)) {
+        return;
+    }
+    
+    // Check if already selected
+    if (window.colorMatchSelected.includes(index)) {
+        return;
+    }
+    
+    const card = document.querySelector(`[data-index="${index}"]`);
+    card.style.borderColor = '#4CAF50';
+    card.style.background = '#E8F5E9';
+    
+    window.colorMatchSelected.push(index);
+    sounds.click();
+    
+    // Check if 2 cards selected
+    if (window.colorMatchSelected.length === 2) {
+        const [idx1, idx2] = window.colorMatchSelected;
+        const card1 = window.colorMatchCards[idx1];
+        const card2 = window.colorMatchCards[idx2];
+        
+        // Check if match (same name, different types)
+        if (card1.name === card2.name && card1.type !== card2.type) {
+            // Match!
+            setTimeout(() => {
+                showNotification(`✅ Harika! ${card1.name} eşleşmesi bulundu!`, 'success');
+                
+                window.colorMatchMatched.push(idx1, idx2);
+                window.colorMatchScore++;
+                document.getElementById('color-match-score').textContent = window.colorMatchScore;
+                
+                // Hide matched cards
+                document.querySelector(`[data-index="${idx1}"]`).style.opacity = '0.3';
+                document.querySelector(`[data-index="${idx2}"]`).style.opacity = '0.3';
+                document.querySelector(`[data-index="${idx1}"]`).style.pointerEvents = 'none';
+                document.querySelector(`[data-index="${idx2}"]`).style.pointerEvents = 'none';
+                
+                gameScores['color-match'] = (gameScores['color-match'] || 0) + 15;
+                saveProgress();
+                sounds.win();
+                
+                window.colorMatchSelected = [];
+                
+                // Check if all matched
+                if (window.colorMatchScore === 6) {
+                    setTimeout(() => {
+                        showNotification('🏆 Tüm renkleri eşleştirdin! Mükemmel! 🎉', 'success');
+                        sounds.win();
+                    }, 500);
+                }
+            }, 300);
+        } else {
+            // No match
+            setTimeout(() => {
+                showNotification('❌ Eşleşmedi! Tekrar dene!', 'warning');
+                sounds.wrong();
+                
+                // Reset selection
+                document.querySelector(`[data-index="${idx1}"]`).style.borderColor = 'transparent';
+                document.querySelector(`[data-index="${idx2}"]`).style.borderColor = 'transparent';
+                document.querySelector(`[data-index="${idx1}"]`).style.background = 'white';
+                document.querySelector(`[data-index="${idx2}"]`).style.background = 'white';
+                
+                window.colorMatchSelected = [];
+            }, 800);
+        }
     }
 };
 
