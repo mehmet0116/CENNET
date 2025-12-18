@@ -5698,12 +5698,21 @@ window.checkPuzzleSolution = function() {
     }
 };
 
+// ===== UTILITY: FISHER-YATES SHUFFLE =====
+function shuffleArray(array) {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
 // ===== RESİM PARÇALA (IMAGE PUZZLE) =====
 function startImagePuzzle() {
     // 3x3 sliding puzzle with emojis
     const emojis = ['🎨', '🌈', '⭐', '🌟', '💎', '🎭', '🎪', '🎡'];
-    let tiles = [...emojis, ''];
-    tiles = tiles.sort(() => Math.random() - 0.5);
+    let tiles = shuffleArray([...emojis, '']);
     
     const html = `
         <h2>🖼️ Resim Parçala Puzzle</h2>
@@ -5800,13 +5809,14 @@ function startWordSearchPuzzle() {
     
     const gridSize = 8;
     const grid = Array(gridSize).fill(0).map(() => Array(gridSize).fill(''));
+    const MAX_PLACEMENT_ATTEMPTS = 50;
     
     // Place words in grid
     words.forEach(({word}) => {
         let placed = false;
         let attempts = 0;
         
-        while (!placed && attempts < 50) {
+        while (!placed && attempts < MAX_PLACEMENT_ATTEMPTS) {
             const horizontal = Math.random() > 0.5;
             const row = Math.floor(Math.random() * gridSize);
             const col = Math.floor(Math.random() * gridSize);
@@ -5996,7 +6006,7 @@ function startColorMatchPuzzle() {
     });
     
     // Shuffle cards
-    cards = cards.sort(() => Math.random() - 0.5);
+    cards = shuffleArray(cards);
     
     const html = `
         <h2>🎨 Renk Eşleştir Puzzle</h2>
@@ -6039,6 +6049,7 @@ function startColorMatchPuzzle() {
     window.colorMatchSelected = [];
     window.colorMatchScore = 0;
     window.colorMatchMatched = [];
+    window.colorMatchTotalPairs = colorPairs.length;
     updateMascotText('Renkleri isimleriyle eşleştir! 2 kart seç! 🎨');
 }
 
@@ -6089,7 +6100,7 @@ window.selectColorMatchCard = function(index) {
                 window.colorMatchSelected = [];
                 
                 // Check if all matched
-                if (window.colorMatchScore === 6) {
+                if (window.colorMatchScore === window.colorMatchTotalPairs) {
                     setTimeout(() => {
                         showNotification('🏆 Tüm renkleri eşleştirdin! Mükemmel! 🎉', 'success');
                         sounds.win();
