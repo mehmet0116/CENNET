@@ -7259,89 +7259,1023 @@ window.clearArtCanvas = function() {
     sounds.click();
 };
 
-// ===== ROBOT YAPIMCISI (OYUN #20) =====
+// ===== ROBOT YAPIMCISI (OYUN #20) - PROFESSIONAL VERSION =====
 function startRobotGame() {
-    const parts = {
-        head: ['🤖', '👾', '🎃', '😊'],
-        body: ['⬜', '🟦', '🟥', '🟨'],
-        arms: ['💪', '🦾', '🙌', '👐'],
-        legs: ['🦵', '🦿', '👢', '👟']
-    };
+    // Initialize robot state if not exists
+    if (!window.robotState) {
+        window.robotState = {
+            parts: {
+                head: { type: 'Classic', color: '#4a90e2', scale: 1, rotation: 0 },
+                torso: { type: 'Standard', color: '#3a3a3a', scale: 1, rotation: 0 },
+                leftArm: { type: 'Basic', color: '#5a5a5a', scale: 1, rotation: 0 },
+                rightArm: { type: 'Basic', color: '#5a5a5a', scale: 1, rotation: 0 },
+                leftLeg: { type: 'Default', color: '#2a2a2a', scale: 1, rotation: 0 },
+                rightLeg: { type: 'Default', color: '#2a2a2a', scale: 1, rotation: 0 },
+                weapon: { type: 'None', color: '#ff6b6b', scale: 1, rotation: 0 }
+            },
+            activeTab: 'heads',
+            selectedPart: 'head'
+        };
+    }
     
     const html = `
-        <h2>🤖 Robot Yapımcısı</h2>
-        <p>Robot tasarla ve kodla!</p>
-        
-        <div style="background:linear-gradient(135deg, #2c3e50 0%, #34495e 100%); padding:40px; border-radius:20px; margin:20px auto; max-width:600px; color:white;">
-            <div style="font-size:2em; margin-bottom:20px;">Robotunu Tasarla:</div>
+        <style>
+            .robot-workshop {
+                background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+                min-height: 100vh;
+                padding: 20px;
+                color: #fff;
+            }
             
-            <div id="robot-display" style="font-size:6em; margin:30px 0; min-height:250px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;">
-                <div id="robot-head">🤖</div>
-                <div id="robot-arms">🙌</div>
-                <div id="robot-body">⬜</div>
-                <div id="robot-legs">🦵</div>
-            </div>
-        </div>
+            .workshop-header {
+                text-align: center;
+                margin-bottom: 30px;
+            }
+            
+            .workshop-title {
+                font-size: 2.5em;
+                font-weight: bold;
+                background: linear-gradient(90deg, #00f2fe, #4facfe, #00f2fe);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                margin-bottom: 10px;
+                text-shadow: 0 0 30px rgba(79, 172, 254, 0.5);
+            }
+            
+            .workshop-subtitle {
+                font-size: 1.2em;
+                opacity: 0.8;
+                color: #a8d8ff;
+            }
+            
+            .workshop-container {
+                display: grid;
+                grid-template-columns: 1fr 2fr 1fr;
+                gap: 20px;
+                max-width: 1400px;
+                margin: 0 auto;
+            }
+            
+            @media (max-width: 1024px) {
+                .workshop-container {
+                    grid-template-columns: 1fr;
+                }
+            }
+            
+            .robot-canvas {
+                background: radial-gradient(circle at 30% 50%, rgba(79, 172, 254, 0.1), transparent 60%),
+                            radial-gradient(circle at 70% 50%, rgba(0, 242, 254, 0.1), transparent 60%),
+                            linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                border-radius: 20px;
+                padding: 40px 20px;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5),
+                            inset 0 0 20px rgba(79, 172, 254, 0.1);
+                border: 2px solid rgba(79, 172, 254, 0.3);
+                position: relative;
+                overflow: hidden;
+                min-height: 600px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .robot-canvas::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: 
+                    repeating-linear-gradient(0deg, rgba(79, 172, 254, 0.03) 0px, transparent 1px, transparent 2px, rgba(79, 172, 254, 0.03) 3px),
+                    repeating-linear-gradient(90deg, rgba(79, 172, 254, 0.03) 0px, transparent 1px, transparent 2px, rgba(79, 172, 254, 0.03) 3px);
+                pointer-events: none;
+            }
+            
+            .robot-display {
+                position: relative;
+                transform-style: preserve-3d;
+                perspective: 1000px;
+            }
+            
+            .robot-part {
+                position: absolute;
+                transition: all 0.3s ease;
+                cursor: pointer;
+            }
+            
+            .robot-part:hover {
+                filter: brightness(1.2);
+                transform: scale(1.05);
+            }
+            
+            .robot-head {
+                width: 80px;
+                height: 80px;
+                left: 50%;
+                top: 0;
+                transform: translateX(-50%);
+                z-index: 10;
+            }
+            
+            .robot-torso {
+                width: 100px;
+                height: 120px;
+                left: 50%;
+                top: 90px;
+                transform: translateX(-50%);
+                z-index: 5;
+            }
+            
+            .robot-arm-left {
+                width: 60px;
+                height: 90px;
+                left: calc(50% - 90px);
+                top: 100px;
+                transform-origin: top center;
+                z-index: 4;
+            }
+            
+            .robot-arm-right {
+                width: 60px;
+                height: 90px;
+                left: calc(50% + 30px);
+                top: 100px;
+                transform-origin: top center;
+                z-index: 4;
+            }
+            
+            .robot-leg-left {
+                width: 50px;
+                height: 100px;
+                left: calc(50% - 40px);
+                top: 220px;
+                z-index: 3;
+            }
+            
+            .robot-leg-right {
+                width: 50px;
+                height: 100px;
+                left: calc(50% - 10px);
+                top: 220px;
+                z-index: 3;
+            }
+            
+            .robot-weapon {
+                width: 70px;
+                height: 70px;
+                left: calc(50% + 80px);
+                top: 120px;
+                z-index: 6;
+            }
+            
+            .parts-panel {
+                background: linear-gradient(135deg, #16213e 0%, #0f0c29 100%);
+                border-radius: 20px;
+                padding: 20px;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+                border: 2px solid rgba(79, 172, 254, 0.2);
+            }
+            
+            .tab-buttons {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 20px;
+                flex-wrap: wrap;
+            }
+            
+            .tab-btn {
+                flex: 1;
+                min-width: 100px;
+                padding: 12px 15px;
+                background: rgba(79, 172, 254, 0.1);
+                border: 2px solid rgba(79, 172, 254, 0.3);
+                border-radius: 10px;
+                color: #fff;
+                cursor: pointer;
+                transition: all 0.3s;
+                font-weight: bold;
+                font-size: 0.9em;
+            }
+            
+            .tab-btn:hover {
+                background: rgba(79, 172, 254, 0.2);
+                border-color: rgba(79, 172, 254, 0.5);
+                transform: translateY(-2px);
+            }
+            
+            .tab-btn.active {
+                background: linear-gradient(135deg, #4facfe, #00f2fe);
+                border-color: #00f2fe;
+                box-shadow: 0 5px 15px rgba(79, 172, 254, 0.5);
+            }
+            
+            .parts-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+                gap: 15px;
+                max-height: 500px;
+                overflow-y: auto;
+                padding: 10px;
+            }
+            
+            .parts-grid::-webkit-scrollbar {
+                width: 8px;
+            }
+            
+            .parts-grid::-webkit-scrollbar-track {
+                background: rgba(0, 0, 0, 0.2);
+                border-radius: 10px;
+            }
+            
+            .parts-grid::-webkit-scrollbar-thumb {
+                background: linear-gradient(135deg, #4facfe, #00f2fe);
+                border-radius: 10px;
+            }
+            
+            .part-option {
+                aspect-ratio: 1;
+                background: linear-gradient(135deg, #1a1a2e, #2d2d44);
+                border: 2px solid rgba(79, 172, 254, 0.3);
+                border-radius: 10px;
+                cursor: pointer;
+                transition: all 0.3s;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 10px;
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .part-option::before {
+                content: '';
+                position: absolute;
+                top: -50%;
+                left: -50%;
+                width: 200%;
+                height: 200%;
+                background: linear-gradient(45deg, transparent, rgba(79, 172, 254, 0.1), transparent);
+                transform: rotate(45deg);
+                transition: all 0.5s;
+            }
+            
+            .part-option:hover::before {
+                left: 100%;
+            }
+            
+            .part-option:hover {
+                border-color: #4facfe;
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+            }
+            
+            .part-option.selected {
+                border-color: #00f2fe;
+                background: linear-gradient(135deg, rgba(79, 172, 254, 0.3), rgba(0, 242, 254, 0.3));
+                box-shadow: 0 0 20px rgba(0, 242, 254, 0.5);
+            }
+            
+            .part-icon {
+                font-size: 2em;
+                margin-bottom: 5px;
+            }
+            
+            .part-name {
+                font-size: 0.75em;
+                text-align: center;
+                opacity: 0.8;
+            }
+            
+            .controls-panel {
+                background: linear-gradient(135deg, #16213e 0%, #0f0c29 100%);
+                border-radius: 20px;
+                padding: 20px;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+                border: 2px solid rgba(79, 172, 254, 0.2);
+            }
+            
+            .control-section {
+                margin-bottom: 25px;
+                padding: 15px;
+                background: rgba(0, 0, 0, 0.3);
+                border-radius: 10px;
+                border: 1px solid rgba(79, 172, 254, 0.2);
+            }
+            
+            .control-label {
+                font-size: 1em;
+                font-weight: bold;
+                margin-bottom: 10px;
+                color: #4facfe;
+                display: block;
+            }
+            
+            .color-picker-custom {
+                width: 100%;
+                height: 50px;
+                border-radius: 10px;
+                border: 2px solid rgba(79, 172, 254, 0.3);
+                cursor: pointer;
+                transition: all 0.3s;
+            }
+            
+            .color-picker-custom:hover {
+                border-color: #4facfe;
+                box-shadow: 0 0 15px rgba(79, 172, 254, 0.5);
+            }
+            
+            .slider-control {
+                width: 100%;
+                height: 8px;
+                border-radius: 5px;
+                background: rgba(79, 172, 254, 0.2);
+                outline: none;
+                -webkit-appearance: none;
+            }
+            
+            .slider-control::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #4facfe, #00f2fe);
+                cursor: pointer;
+                box-shadow: 0 0 10px rgba(79, 172, 254, 0.8);
+            }
+            
+            .slider-value {
+                display: inline-block;
+                margin-left: 10px;
+                color: #00f2fe;
+                font-weight: bold;
+            }
+            
+            .action-buttons {
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+                margin-top: 30px;
+            }
+            
+            .action-btn {
+                padding: 15px;
+                border: none;
+                border-radius: 10px;
+                font-weight: bold;
+                font-size: 1.1em;
+                cursor: pointer;
+                transition: all 0.3s;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            }
+            
+            .action-btn.primary {
+                background: linear-gradient(135deg, #4facfe, #00f2fe);
+                color: white;
+            }
+            
+            .action-btn.success {
+                background: linear-gradient(135deg, #11998e, #38ef7d);
+                color: white;
+            }
+            
+            .action-btn.danger {
+                background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+                color: white;
+            }
+            
+            .action-btn:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+            }
+            
+            .action-btn:active {
+                transform: translateY(-1px);
+            }
+            
+            .glow-effect {
+                animation: glow 2s ease-in-out infinite;
+            }
+            
+            @keyframes glow {
+                0%, 100% {
+                    filter: drop-shadow(0 0 5px currentColor);
+                }
+                50% {
+                    filter: drop-shadow(0 0 20px currentColor);
+                }
+            }
+        </style>
         
-        <div style="margin:30px auto; max-width:700px;">
-            ${Object.entries(parts).map(([partName, options]) => `
-                <div style="margin:20px 0;">
-                    <div style="font-size:1.3em; margin-bottom:10px; font-weight:bold; text-transform:capitalize;">
-                        ${partName === 'head' ? 'Kafa' : partName === 'body' ? 'Gövde' : partName === 'arms' ? 'Kollar' : 'Bacaklar'}:
+        <div class="robot-workshop">
+            <div class="workshop-header">
+                <h1 class="workshop-title">⚙️ ADVANCED ROBOT MAKER ⚙️</h1>
+                <p class="workshop-subtitle">Build Your Ultimate Robot Masterpiece</p>
+            </div>
+            
+            <div class="workshop-container">
+                <!-- Left Panel: Parts Selection -->
+                <div class="parts-panel">
+                    <h3 style="margin-bottom: 15px; color: #4facfe;">🔧 Robot Parts</h3>
+                    
+                    <div class="tab-buttons">
+                        <button class="tab-btn active" onclick="switchRobotTab('heads')">Heads</button>
+                        <button class="tab-btn" onclick="switchRobotTab('torsos')">Torsos</button>
+                        <button class="tab-btn" onclick="switchRobotTab('arms')">Arms</button>
+                        <button class="tab-btn" onclick="switchRobotTab('legs')">Legs</button>
+                        <button class="tab-btn" onclick="switchRobotTab('weapons')">Weapons</button>
                     </div>
-                    <div style="display:flex; gap:15px; justify-content:center; flex-wrap:wrap;">
-                        ${options.map(part => `
-                            <button onclick="selectRobotPart('${partName}', '${part}')" 
-                                    style="font-size:3em; padding:15px; background:white; border:3px solid #ddd; border-radius:15px; cursor:pointer; transition:0.2s;"
-                                    onmouseover="this.style.borderColor='#4CAF50'"
-                                    onmouseout="this.style.borderColor='#ddd'">
-                                ${part}
-                            </button>
-                        `).join('')}
+                    
+                    <div id="parts-container" class="parts-grid">
+                        <!-- Parts will be dynamically loaded here -->
                     </div>
                 </div>
-            `).join('')}
-        </div>
-        
-        <div style="margin:30px;">
-            <button class="nav-btn" onclick="animateRobot()" style="background:#4CAF50;">▶️ Robotu Çalıştır</button>
-            <button class="nav-btn" onclick="startRobotGame()">🔄 Yeni Robot</button>
-            <button class="nav-btn" onclick="renderGames()">🔙 Geri</button>
+                
+                <!-- Center Panel: Robot Display -->
+                <div class="robot-canvas">
+                    <div id="robot-assembly" style="position: relative; width: 400px; height: 450px;">
+                        <!-- Robot parts will be rendered here -->
+                    </div>
+                </div>
+                
+                <!-- Right Panel: Customization Controls -->
+                <div class="controls-panel">
+                    <h3 style="margin-bottom: 15px; color: #4facfe;">🎨 Customize</h3>
+                    
+                    <div class="control-section">
+                        <label class="control-label">Color</label>
+                        <input type="color" id="part-color" class="color-picker-custom" 
+                               onchange="updatePartColor(this.value)">
+                    </div>
+                    
+                    <div class="control-section">
+                        <label class="control-label">
+                            Scale: <span class="slider-value" id="scale-value">1.0</span>
+                        </label>
+                        <input type="range" id="scale-slider" class="slider-control" min="0.5" max="2" step="0.1" value="1"
+                               oninput="updatePartScale(this.value)">
+                    </div>
+                    
+                    <div class="control-section">
+                        <label class="control-label">
+                            Rotation: <span class="slider-value" id="rotation-value">0°</span>
+                        </label>
+                        <input type="range" id="rotation-slider" class="slider-control" min="-180" max="180" step="15" value="0"
+                               oninput="updatePartRotation(this.value)">
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="action-btn success" onclick="saveRobotDesign()">
+                            💾 Save Robot
+                        </button>
+                        <button class="action-btn primary" onclick="downloadRobotImage()">
+                            📸 Download Image
+                        </button>
+                        <button class="action-btn primary" onclick="randomizeRobot()">
+                            🎲 Randomize
+                        </button>
+                        <button class="action-btn danger" onclick="resetRobotDesign()">
+                            🔄 Reset
+                        </button>
+                        <button class="action-btn" style="background: linear-gradient(135deg, #667eea, #764ba2);" 
+                                onclick="renderGames()">
+                            🔙 Back to Games
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     `;
     
     document.getElementById('dynamic-content').innerHTML = html;
-    updateMascotText('Kendi robotunu tasarla! Parçaları seç ve robotunu çalıştır! 🤖');
+    
+    // Load initial parts and render robot
+    switchRobotTab('heads');
+    renderRobotAssembly();
+    
+    updateMascotText('Welcome to the Advanced Robot Workshop! Design your ultimate robot with professional tools! 🤖⚙️');
 }
 
-window.selectRobotPart = function(partName, part) {
-    document.getElementById(`robot-${partName}`).textContent = part;
-    sounds.click();
+// Robot part definitions with realistic SVG-like representations
+window.robotParts = {
+    heads: [
+        { name: 'Classic', icon: '🤖' },
+        { name: 'Combat', icon: '⚔️' },
+        { name: 'Scanner', icon: '📡' },
+        { name: 'Heavy', icon: '🛡️' },
+        { name: 'Stealth', icon: '👁️' },
+        { name: 'Elite', icon: '⭐' }
+    ],
+    torsos: [
+        { name: 'Standard', icon: '⬛' },
+        { name: 'Armored', icon: '🛡️' },
+        { name: 'Light', icon: '💨' },
+        { name: 'Tank', icon: '🔲' },
+        { name: 'Reactor', icon: '⚡' },
+        { name: 'Compact', icon: '◼️' }
+    ],
+    arms: [
+        { name: 'Basic', icon: '🦾' },
+        { name: 'Drill', icon: '🔩' },
+        { name: 'Claw', icon: '✂️' },
+        { name: 'Heavy', icon: '💪' },
+        { name: 'Precision', icon: '🔧' },
+        { name: 'Powered', icon: '⚡' }
+    ],
+    legs: [
+        { name: 'Default', icon: '🦵' },
+        { name: 'Wheels', icon: '⚙️' },
+        { name: 'Treads', icon: '🛞' },
+        { name: 'Jump', icon: '🚀' },
+        { name: 'Hover', icon: '💫' },
+        { name: 'Spider', icon: '🕷️' }
+    ],
+    weapons: [
+        { name: 'None', icon: '❌' },
+        { name: 'Laser', icon: '🔴' },
+        { name: 'Cannon', icon: '💥' },
+        { name: 'Sword', icon: '⚔️' },
+        { name: 'Shield', icon: '🛡️' },
+        { name: 'Blaster', icon: '🔫' }
+    ]
+};
+
+// Switch between part tabs
+window.switchRobotTab = function(tab) {
+    window.robotState.activeTab = tab;
     
+    // Update tab buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    // Find and activate the clicked button
+    const buttons = document.querySelectorAll('.tab-btn');
+    const tabNames = ['heads', 'torsos', 'arms', 'legs', 'weapons'];
+    const tabIndex = tabNames.indexOf(tab);
+    if (tabIndex >= 0 && buttons[tabIndex]) {
+        buttons[tabIndex].classList.add('active');
+    }
+    
+    // Load parts for this tab
+    const container = document.getElementById('parts-container');
+    const parts = window.robotParts[tab];
+    
+    container.innerHTML = parts.map((part, idx) => `
+        <div class="part-option ${isPartSelected(tab, part.name) ? 'selected' : ''}" 
+             onclick="selectPartType('${tab}', '${part.name}', ${idx})">
+            <div class="part-icon">${part.icon}</div>
+            <div class="part-name">${part.name}</div>
+        </div>
+    `).join('');
+};
+
+// Check if part is currently selected
+function isPartSelected(category, partName) {
+    const partMap = {
+        'heads': 'head',
+        'torsos': 'torso',
+        'arms': 'leftArm',
+        'legs': 'leftLeg',
+        'weapons': 'weapon'
+    };
+    const partKey = partMap[category];
+    return window.robotState.parts[partKey].type === partName;
+}
+
+// Select a part type
+window.selectPartType = function(category, partName, idx) {
+    const partMap = {
+        'heads': 'head',
+        'torsos': 'torso',
+        'arms': ['leftArm', 'rightArm'],
+        'legs': ['leftLeg', 'rightLeg'],
+        'weapons': 'weapon'
+    };
+    
+    const partKeys = Array.isArray(partMap[category]) ? partMap[category] : [partMap[category]];
+    
+    partKeys.forEach(key => {
+        window.robotState.parts[key].type = partName;
+    });
+    
+    window.robotState.selectedPart = partKeys[0];
+    
+    // Update UI
+    switchRobotTab(category);
+    renderRobotAssembly();
+    updateControlsForSelectedPart();
+    
+    sounds.click();
     gameScores.robot = (gameScores.robot || 0) + 5;
     saveProgress();
 };
 
-window.animateRobot = function() {
-    const robotParts = ['robot-head', 'robot-arms', 'robot-body', 'robot-legs'];
-    let index = 0;
+// Render the robot assembly
+window.renderRobotAssembly = function() {
+    const assembly = document.getElementById('robot-assembly');
+    const state = window.robotState.parts;
     
-    const interval = setInterval(() => {
-        const element = document.getElementById(robotParts[index]);
-        element.style.transform = 'scale(1.3)';
-        setTimeout(() => {
-            element.style.transform = 'scale(1)';
-        }, 200);
+    const renderPart = (partKey, className, label) => {
+        const part = state[partKey];
+        const color = part.color;
+        const scale = part.scale;
+        const rotation = part.rotation;
         
+        return `
+            <div class="robot-part ${className}" 
+                 onclick="selectRobotPartForEdit('${partKey}')"
+                 style="transform: translateX(-50%) scale(${scale}) rotate(${rotation}deg);">
+                <svg width="100%" height="100%" viewBox="0 0 100 100" style="overflow: visible;">
+                    ${getRobotPartSVG(partKey, part.type, color)}
+                </svg>
+            </div>
+        `;
+    };
+    
+    assembly.innerHTML = `
+        ${renderPart('head', 'robot-head', 'Head')}
+        ${renderPart('torso', 'robot-torso', 'Torso')}
+        ${renderPart('leftArm', 'robot-arm-left', 'Left Arm')}
+        ${renderPart('rightArm', 'robot-arm-right', 'Right Arm')}
+        ${renderPart('leftLeg', 'robot-leg-left', 'Left Leg')}
+        ${renderPart('rightLeg', 'robot-leg-right', 'Right Leg')}
+        ${state.weapon.type !== 'None' ? renderPart('weapon', 'robot-weapon', 'Weapon') : ''}
+    `;
+};
+
+// Generate SVG for robot parts
+function getRobotPartSVG(partKey, type, color) {
+    // Head designs
+    if (partKey === 'head') {
+        const designs = {
+            'Classic': `
+                <rect x="20" y="20" width="60" height="60" fill="${color}" stroke="#000" stroke-width="2" rx="10"/>
+                <circle cx="35" cy="40" r="8" fill="#4facfe" class="glow-effect"/>
+                <circle cx="65" cy="40" r="8" fill="#4facfe" class="glow-effect"/>
+                <rect x="30" y="60" width="40" height="5" fill="#333"/>
+            `,
+            'Combat': `
+                <polygon points="50,10 80,30 80,70 50,80 20,70 20,30" fill="${color}" stroke="#000" stroke-width="2"/>
+                <circle cx="35" cy="45" r="6" fill="#ff0000" class="glow-effect"/>
+                <circle cx="65" cy="45" r="6" fill="#ff0000" class="glow-effect"/>
+                <rect x="40" y="25" width="20" height="8" fill="#666"/>
+            `,
+            'Scanner': `
+                <ellipse cx="50" cy="50" rx="35" ry="40" fill="${color}" stroke="#000" stroke-width="2"/>
+                <rect x="20" y="35" width="60" height="20" fill="#4facfe" opacity="0.7" class="glow-effect"/>
+                <circle cx="50" cy="45" r="15" fill="#00f2fe" class="glow-effect"/>
+            `,
+            'Heavy': `
+                <rect x="15" y="25" width="70" height="55" fill="${color}" stroke="#000" stroke-width="3" rx="5"/>
+                <rect x="25" y="35" width="15" height="15" fill="#ff6b6b" class="glow-effect"/>
+                <rect x="60" y="35" width="15" height="15" fill="#ff6b6b" class="glow-effect"/>
+                <rect x="30" y="60" width="40" height="8" fill="#333"/>
+            `,
+            'Stealth': `
+                <path d="M 30,20 L 70,20 L 80,50 L 70,80 L 30,80 L 20,50 Z" fill="${color}" stroke="#000" stroke-width="2"/>
+                <circle cx="40" cy="45" r="5" fill="#00ff00" class="glow-effect"/>
+                <circle cx="60" cy="45" r="5" fill="#00ff00" class="glow-effect"/>
+            `,
+            'Elite': `
+                <rect x="25" y="15" width="50" height="65" fill="${color}" stroke="#ffd700" stroke-width="3" rx="8"/>
+                <circle cx="38" cy="38" r="7" fill="#ffd700" class="glow-effect"/>
+                <circle cx="62" cy="38" r="7" fill="#ffd700" class="glow-effect"/>
+                <polygon points="50,55 40,65 60,65" fill="#ffd700"/>
+            `
+        };
+        return designs[type] || designs['Classic'];
+    }
+    
+    // Torso designs
+    if (partKey === 'torso') {
+        const designs = {
+            'Standard': `
+                <rect x="10" y="10" width="80" height="100" fill="${color}" stroke="#000" stroke-width="2" rx="5"/>
+                <circle cx="50" cy="50" r="20" fill="#4facfe" opacity="0.5" class="glow-effect"/>
+                <rect x="20" y="25" width="10" height="60" fill="#333" opacity="0.5"/>
+                <rect x="70" y="25" width="10" height="60" fill="#333" opacity="0.5"/>
+            `,
+            'Armored': `
+                <rect x="5" y="5" width="90" height="110" fill="${color}" stroke="#000" stroke-width="3" rx="3"/>
+                <rect x="15" y="15" width="70" height="20" fill="#666"/>
+                <rect x="15" y="45" width="70" height="20" fill="#666"/>
+                <rect x="15" y="75" width="70" height="20" fill="#666"/>
+            `,
+            'Light': `
+                <path d="M 20,10 L 80,10 L 75,110 L 25,110 Z" fill="${color}" stroke="#000" stroke-width="2"/>
+                <circle cx="50" cy="40" r="15" fill="#00f2fe" class="glow-effect"/>
+                <line x1="30" y1="70" x2="70" y2="70" stroke="#4facfe" stroke-width="3"/>
+            `,
+            'Tank': `
+                <rect x="5" y="5" width="90" height="110" fill="${color}" stroke="#000" stroke-width="4" rx="8"/>
+                <rect x="20" y="20" width="60" height="30" fill="#666"/>
+                <rect x="20" y="60" width="60" height="30" fill="#666"/>
+                <circle cx="50" cy="75" r="10" fill="#ff6b6b" class="glow-effect"/>
+            `,
+            'Reactor': `
+                <rect x="15" y="10" width="70" height="100" fill="${color}" stroke="#000" stroke-width="2" rx="10"/>
+                <circle cx="50" cy="60" r="25" fill="#4facfe" class="glow-effect"/>
+                <circle cx="50" cy="60" r="18" fill="#00f2fe" class="glow-effect"/>
+                <circle cx="50" cy="60" r="10" fill="#fff" class="glow-effect"/>
+            `,
+            'Compact': `
+                <rect x="25" y="20" width="50" height="80" fill="${color}" stroke="#000" stroke-width="2" rx="5"/>
+                <rect x="30" y="30" width="40" height="10" fill="#4facfe" opacity="0.7"/>
+                <rect x="30" y="50" width="40" height="10" fill="#4facfe" opacity="0.7"/>
+                <rect x="30" y="70" width="40" height="10" fill="#4facfe" opacity="0.7"/>
+            `
+        };
+        return designs[type] || designs['Standard'];
+    }
+    
+    // Arm designs
+    if (partKey === 'leftArm' || partKey === 'rightArm') {
+        const designs = {
+            'Basic': `
+                <rect x="25" y="5" width="30" height="80" fill="${color}" stroke="#000" stroke-width="2" rx="15"/>
+                <circle cx="40" cy="70" r="12" fill="#333"/>
+            `,
+            'Drill': `
+                <rect x="25" y="5" width="30" height="60" fill="${color}" stroke="#000" stroke-width="2" rx="5"/>
+                <polygon points="40,65 30,90 50,90" fill="#666" stroke="#000" stroke-width="2"/>
+                <circle cx="40" cy="75" r="5" fill="#4facfe" class="glow-effect"/>
+            `,
+            'Claw': `
+                <rect x="30" y="5" width="20" height="50" fill="${color}" stroke="#000" stroke-width="2"/>
+                <path d="M 25,55 L 20,75 L 30,70 Z" fill="${color}" stroke="#000" stroke-width="2"/>
+                <path d="M 55,55 L 60,75 L 50,70 Z" fill="${color}" stroke="#000" stroke-width="2"/>
+            `,
+            'Heavy': `
+                <rect x="20" y="5" width="40" height="80" fill="${color}" stroke="#000" stroke-width="3" rx="8"/>
+                <rect x="25" y="20" width="30" height="15" fill="#666"/>
+                <rect x="25" y="45" width="30" height="15" fill="#666"/>
+            `,
+            'Precision': `
+                <rect x="30" y="5" width="20" height="70" fill="${color}" stroke="#000" stroke-width="2" rx="10"/>
+                <line x1="35" y1="75" x2="35" y2="88" stroke="#4facfe" stroke-width="3" class="glow-effect"/>
+                <line x1="45" y1="75" x2="45" y2="88" stroke="#4facfe" stroke-width="3" class="glow-effect"/>
+            `,
+            'Powered': `
+                <rect x="25" y="5" width="30" height="75" fill="${color}" stroke="#000" stroke-width="2" rx="12"/>
+                <circle cx="40" cy="40" r="12" fill="#ff6b6b" class="glow-effect"/>
+                <circle cx="40" cy="60" r="10" fill="#4facfe" class="glow-effect"/>
+            `
+        };
+        return designs[type] || designs['Basic'];
+    }
+    
+    // Leg designs
+    if (partKey === 'leftLeg' || partKey === 'rightLeg') {
+        const designs = {
+            'Default': `
+                <rect x="20" y="5" width="30" height="80" fill="${color}" stroke="#000" stroke-width="2" rx="5"/>
+                <rect x="15" y="75" width="40" height="20" fill="#333" stroke="#000" stroke-width="2" rx="3"/>
+            `,
+            'Wheels': `
+                <rect x="25" y="5" width="25" height="50" fill="${color}" stroke="#000" stroke-width="2"/>
+                <circle cx="37" cy="70" r="20" fill="#333" stroke="#000" stroke-width="2"/>
+                <circle cx="37" cy="70" r="12" fill="#666"/>
+            `,
+            'Treads': `
+                <rect x="20" y="5" width="35" height="60" fill="${color}" stroke="#000" stroke-width="2" rx="5"/>
+                <rect x="10" y="60" width="55" height="30" fill="#333" stroke="#000" stroke-width="2" rx="5"/>
+                <rect x="15" y="65" width="45" height="5" fill="#666"/>
+                <rect x="15" y="75" width="45" height="5" fill="#666"/>
+                <rect x="15" y="85" width="45" height="5" fill="#666"/>
+            `,
+            'Jump': `
+                <rect x="25" y="5" width="25" height="50" fill="${color}" stroke="#000" stroke-width="2" rx="8"/>
+                <path d="M 25,55 Q 37,75 50,55" fill="#4facfe" stroke="#000" stroke-width="2"/>
+                <circle cx="37" cy="75" r="8" fill="#ff6b6b" class="glow-effect"/>
+            `,
+            'Hover': `
+                <rect x="25" y="5" width="25" height="45" fill="${color}" stroke="#000" stroke-width="2" rx="10"/>
+                <ellipse cx="37" cy="65" rx="25" ry="15" fill="#4facfe" opacity="0.7" class="glow-effect"/>
+                <ellipse cx="37" cy="70" rx="20" ry="10" fill="#00f2fe" class="glow-effect"/>
+            `,
+            'Spider': `
+                <rect x="30" y="5" width="20" height="30" fill="${color}" stroke="#000" stroke-width="2"/>
+                <line x1="30" y1="40" x2="10" y2="70" stroke="${color}" stroke-width="4"/>
+                <line x1="50" y1="40" x2="70" y2="70" stroke="${color}" stroke-width="4"/>
+                <line x1="30" y1="50" x2="15" y2="80" stroke="${color}" stroke-width="4"/>
+                <line x1="50" y1="50" x2="75" y2="80" stroke="${color}" stroke-width="4"/>
+            `
+        };
+        return designs[type] || designs['Default'];
+    }
+    
+    // Weapon designs
+    if (partKey === 'weapon') {
+        const designs = {
+            'Laser': `
+                <rect x="10" y="30" width="60" height="15" fill="${color}" stroke="#000" stroke-width="2" rx="3"/>
+                <rect x="65" y="25" width="25" height="25" fill="#ff0000" class="glow-effect"/>
+                <line x1="85" y1="37" x2="95" y2="37" stroke="#ff0000" stroke-width="5" class="glow-effect"/>
+            `,
+            'Cannon': `
+                <rect x="5" y="25" width="40" height="25" fill="${color}" stroke="#000" stroke-width="2" rx="5"/>
+                <circle cx="45" cy="37" r="18" fill="#333" stroke="#000" stroke-width="2"/>
+                <rect x="55" y="30" width="35" height="14" fill="${color}" stroke="#000" stroke-width="2"/>
+            `,
+            'Sword': `
+                <rect x="10" y="35" width="20" height="8" fill="${color}" stroke="#000" stroke-width="2"/>
+                <rect x="28" y="20" width="60" height="5" fill="#a8d8ff" stroke="#000" stroke-width="2"/>
+                <polygon points="88,15 95,25 88,35" fill="#a8d8ff" stroke="#000" stroke-width="2"/>
+            `,
+            'Shield': `
+                <path d="M 20,15 Q 50,10 80,15 L 75,60 Q 50,70 25,60 Z" fill="${color}" stroke="#000" stroke-width="3"/>
+                <circle cx="50" cy="37" r="12" fill="#4facfe" class="glow-effect"/>
+            `,
+            'Blaster': `
+                <rect x="15" y="28" width="50" height="18" fill="${color}" stroke="#000" stroke-width="2" rx="5"/>
+                <polygon points="65,30 85,37 65,44" fill="#ff6b6b"/>
+                <circle cx="75" cy="37" r="5" fill="#ff0000" class="glow-effect"/>
+            `
+        };
+        return designs[type] || '';
+    }
+    
+    return '';
+}
+
+// Select robot part for editing
+window.selectRobotPartForEdit = function(partKey) {
+    window.robotState.selectedPart = partKey;
+    updateControlsForSelectedPart();
+    sounds.click();
+};
+
+// Update controls to reflect selected part
+function updateControlsForSelectedPart() {
+    const part = window.robotState.parts[window.robotState.selectedPart];
+    
+    document.getElementById('part-color').value = part.color;
+    document.getElementById('scale-slider').value = part.scale;
+    document.getElementById('scale-value').textContent = part.scale.toFixed(1);
+    document.getElementById('rotation-slider').value = part.rotation;
+    document.getElementById('rotation-value').textContent = part.rotation + '°';
+}
+
+// Update part color
+window.updatePartColor = function(color) {
+    const part = window.robotState.parts[window.robotState.selectedPart];
+    part.color = color;
+    renderRobotAssembly();
+    sounds.click();
+};
+
+// Update part scale
+window.updatePartScale = function(scale) {
+    const part = window.robotState.parts[window.robotState.selectedPart];
+    part.scale = parseFloat(scale);
+    document.getElementById('scale-value').textContent = scale;
+    renderRobotAssembly();
+};
+
+// Update part rotation
+window.updatePartRotation = function(rotation) {
+    const part = window.robotState.parts[window.robotState.selectedPart];
+    part.rotation = parseInt(rotation);
+    document.getElementById('rotation-value').textContent = rotation + '°';
+    renderRobotAssembly();
+};
+
+// Randomize robot design
+window.randomizeRobot = function() {
+    const getRandomPart = (category) => {
+        const parts = window.robotParts[category];
+        return parts[Math.floor(Math.random() * parts.length)].name;
+    };
+    
+    const getRandomColor = () => {
+        const colors = ['#4a90e2', '#e24a4a', '#4ae290', '#e2d44a', '#9b4ae2', '#4ae2d4', '#e2904a'];
+        return colors[Math.floor(Math.random() * colors.length)];
+    };
+    
+    Object.keys(window.robotState.parts).forEach(partKey => {
+        const category = {
+            'head': 'heads',
+            'torso': 'torsos',
+            'leftArm': 'arms',
+            'rightArm': 'arms',
+            'leftLeg': 'legs',
+            'rightLeg': 'legs',
+            'weapon': 'weapons'
+        }[partKey];
+        
+        window.robotState.parts[partKey] = {
+            type: getRandomPart(category),
+            color: getRandomColor(),
+            scale: 0.8 + Math.random() * 0.8,
+            rotation: (Math.random() - 0.5) * 60
+        };
+    });
+    
+    renderRobotAssembly();
+    updateControlsForSelectedPart();
+    sounds.correct();
+    showNotification('🎲 Robot randomized! Looks amazing!', 'success');
+};
+
+// Reset robot design
+window.resetRobotDesign = function() {
+    if (confirm('Are you sure you want to reset your robot design?')) {
+        window.robotState = null;
+        startRobotGame();
         sounds.click();
-        index++;
-        
-        if (index >= robotParts.length) {
-            clearInterval(interval);
-            showNotification('🤖 Robot çalışıyor! Harika tasarım!', 'success');
-            sounds.win();
-        }
-    }, 400);
+        showNotification('🔄 Robot design reset!', 'success');
+    }
+};
+
+// Save robot design to localStorage
+window.saveRobotDesign = function() {
+    const designName = prompt('Enter a name for your robot:') || 'My Robot';
+    const savedRobots = JSON.parse(localStorage.getItem('savedRobots') || '[]');
+    
+    savedRobots.push({
+        name: designName,
+        design: JSON.parse(JSON.stringify(window.robotState.parts)),
+        timestamp: new Date().toISOString()
+    });
+    
+    localStorage.setItem('savedRobots', JSON.stringify(savedRobots));
+    
+    sounds.win();
+    showNotification(`💾 Robot "${designName}" saved successfully!`, 'success');
+    
+    gameScores.robot = (gameScores.robot || 0) + 50;
+    saveProgress();
+};
+
+// Download robot as image
+window.downloadRobotImage = function() {
+    const assembly = document.getElementById('robot-assembly');
+    
+    // Create a canvas for the robot image
+    const canvas = document.createElement('canvas');
+    canvas.width = 800;
+    canvas.height = 900;
+    const ctx = canvas.getContext('2d');
+    
+    // Fill background with gradient
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    gradient.addColorStop(0, '#1a1a2e');
+    gradient.addColorStop(1, '#16213e');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Add title
+    ctx.fillStyle = '#4facfe';
+    ctx.font = 'bold 40px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('MY ROBOT CREATION', canvas.width / 2, 60);
+    
+    // Add subtitle
+    ctx.fillStyle = '#a8d8ff';
+    ctx.font = '20px Arial';
+    ctx.fillText('Made with Advanced Robot Maker', canvas.width / 2, 95);
+    
+    // Add robot info text (since we can't easily render SVG without external libraries)
+    ctx.fillStyle = '#fff';
+    ctx.font = '24px Arial';
+    ctx.fillText('🤖 Custom Robot Design 🤖', canvas.width / 2, 450);
+    
+    const state = window.robotState.parts;
+    ctx.font = '18px Arial';
+    ctx.fillStyle = '#4facfe';
+    let yPos = 500;
+    
+    ctx.fillText(`Head: ${state.head.type}`, canvas.width / 2, yPos);
+    yPos += 30;
+    ctx.fillText(`Torso: ${state.torso.type}`, canvas.width / 2, yPos);
+    yPos += 30;
+    ctx.fillText(`Arms: ${state.leftArm.type}`, canvas.width / 2, yPos);
+    yPos += 30;
+    ctx.fillText(`Legs: ${state.leftLeg.type}`, canvas.width / 2, yPos);
+    yPos += 30;
+    ctx.fillText(`Weapon: ${state.weapon.type}`, canvas.width / 2, yPos);
+    
+    // Add timestamp
+    ctx.fillStyle = '#666';
+    ctx.font = '14px Arial';
+    ctx.fillText(new Date().toLocaleString(), canvas.width / 2, 850);
+    
+    // Note: For full SVG rendering, consider using libraries like html2canvas or dom-to-image
+    // This simplified version provides a downloadable design summary
+    
+    // Create download link
+    const link = document.createElement('a');
+    link.download = 'my-robot-' + Date.now() + '.png';
+    
+    canvas.toBlob((blob) => {
+        link.href = URL.createObjectURL(blob);
+        link.click();
+        sounds.win();
+        showNotification('📸 Robot design summary downloaded!', 'success');
+    });
+    
+    gameScores.robot = (gameScores.robot || 0) + 25;
+    saveProgress();
 };
 
 // ===== SİSTEM FONKSİYONLARI =====
