@@ -6125,73 +6125,247 @@ window.selectColorMatchCard = function(index) {
     }
 };
 
-// ===== LABİRENT MACERASI (OYUN #10) =====
+// ===== LABİRENT MACERASI (OYUN #10) - ENHANCED VERSION =====
 function startMazeGame() {
-    const level = (gameScores.mazeLevel || 0) + 1;
+    const level = Math.min((gameScores.mazeLevel || 0) + 1, 10);
     const maxLevel = 10;
     
-    // Basit 10x10 labirent
-    const maze = generateMaze(10, 10, level);
+    // Size increases with difficulty
+    const size = Math.min(10 + level, 15);
+    
+    // Generate proper maze using recursive backtracking
+    const maze = generateProMaze(size, size, level);
+    
+    // Initialize game state
+    if (!window.mazeGameState || window.mazeGameState.resetNeeded) {
+        window.mazeGameState = {
+            moves: 0,
+            timeElapsed: 0,
+            coinsCollected: 0,
+            totalCoins: 0,
+            startTime: Date.now(),
+            timer: null,
+            resetNeeded: false
+        };
+        
+        // Count total coins in maze
+        for (let y = 0; y < size; y++) {
+            for (let x = 0; x < size; x++) {
+                if (maze[y][x] === 'C') window.mazeGameState.totalCoins++;
+            }
+        }
+        
+        // Start timer
+        window.mazeGameState.timer = setInterval(() => {
+            window.mazeGameState.timeElapsed = Math.floor((Date.now() - window.mazeGameState.startTime) / 1000);
+            const timerEl = document.getElementById('maze-timer');
+            if (timerEl) timerEl.textContent = window.mazeGameState.timeElapsed;
+        }, 1000);
+    }
+    
+    const cellSize = size > 12 ? 25 : 30;
     
     const html = `
-        <h2>🌀 Labirent Macerası</h2>
-        <p>Seviye ${Math.min(level, maxLevel)}/${maxLevel} - Hedefi bul!</p>
-        
-        <div id="maze-container" style="display:inline-block; margin:20px auto; background:#333; padding:10px; border-radius:10px;">
-            ${maze.map((row, y) => `
-                <div style="display:flex;">
-                    ${row.map((cell, x) => `
-                        <div class="maze-cell" data-x="${x}" data-y="${y}"
-                             style="width:30px; height:30px; ${
-                                 cell === 1 ? 'background:#555;' :
-                                 cell === 'P' ? 'background:#FF9800; border-radius:50%;' :
-                                 cell === 'G' ? 'background:#4CAF50;' :
-                                 'background:#fff;'
-                             }">
-                        </div>
-                    `).join('')}
-                </div>
-            `).join('')}
+        <div style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding:30px; border-radius:20px; margin-bottom:20px; color:white;">
+            <h2 style="font-size:2.5em; margin-bottom:10px;">🌀 Labirent Macerası</h2>
+            <p style="font-size:1.2em;">Seviye ${level}/${maxLevel} - Hazineyi bul!</p>
         </div>
         
-        <div class="maze-controls" style="display:grid; grid-template-columns:repeat(3, 60px); gap:10px; justify-content:center; margin:20px;">
-            <div></div>
-            <button class="maze-btn nav-btn" onclick="moveMaze('up')" style="width:60px; height:60px;">⬆️</button>
-            <div></div>
-            <button class="maze-btn nav-btn" onclick="moveMaze('left')" style="width:60px; height:60px;">⬅️</button>
-            <div></div>
-            <button class="maze-btn nav-btn" onclick="moveMaze('right')" style="width:60px; height:60px;">➡️</button>
-            <div></div>
-            <button class="maze-btn nav-btn" onclick="moveMaze('down')" style="width:60px; height:60px;">⬇️</button>
-            <div></div>
+        <!-- Stats Panel -->
+        <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:15px; max-width:800px; margin:0 auto 20px;">
+            <div style="background:linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding:15px; border-radius:15px; color:white; text-align:center; box-shadow:0 5px 15px rgba(0,0,0,0.2);">
+                <div style="font-size:2em; margin-bottom:5px;">⏱️</div>
+                <div style="font-size:1.8em; font-weight:bold;" id="maze-timer">0</div>
+                <div style="font-size:0.8em; opacity:0.9;">Süre (sn)</div>
+            </div>
+            <div style="background:linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding:15px; border-radius:15px; color:white; text-align:center; box-shadow:0 5px 15px rgba(0,0,0,0.2);">
+                <div style="font-size:2em; margin-bottom:5px;">👣</div>
+                <div style="font-size:1.8em; font-weight:bold;" id="maze-moves">0</div>
+                <div style="font-size:0.8em; opacity:0.9;">Hamle</div>
+            </div>
+            <div style="background:linear-gradient(135deg, #fa709a 0%, #fee140 100%); padding:15px; border-radius:15px; color:white; text-align:center; box-shadow:0 5px 15px rgba(0,0,0,0.2);">
+                <div style="font-size:2em; margin-bottom:5px;">💰</div>
+                <div style="font-size:1.8em; font-weight:bold;" id="maze-coins">${window.mazeGameState.coinsCollected}/${window.mazeGameState.totalCoins}</div>
+                <div style="font-size:0.8em; opacity:0.9;">Altın</div>
+            </div>
+            <div style="background:linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); padding:15px; border-radius:15px; color:#333; text-align:center; box-shadow:0 5px 15px rgba(0,0,0,0.2);">
+                <div style="font-size:2em; margin-bottom:5px;">⭐</div>
+                <div style="font-size:1.8em; font-weight:bold;">Lv ${level}</div>
+                <div style="font-size:0.8em; opacity:0.9;">Seviye</div>
+            </div>
+        </div>
+        
+        <!-- Maze Container -->
+        <div style="background:linear-gradient(135deg, #2c3e50 0%, #34495e 100%); padding:20px; border-radius:20px; margin:20px auto; display:inline-block; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+            <div id="maze-container" style="background:#1a1a2e; padding:15px; border-radius:15px; box-shadow:inset 0 4px 8px rgba(0,0,0,0.3);">
+                ${maze.map((row, y) => `
+                    <div style="display:flex; gap:2px;">
+                        ${row.map((cell, x) => {
+                            let style = `width:${cellSize}px; height:${cellSize}px; transition:all 0.3s ease; border-radius:3px; position:relative;`;
+                            let content = '';
+                            
+                            if (cell === 1) {
+                                // Wall - gradient effect
+                                style += 'background:linear-gradient(135deg, #3a3a52 0%, #2d2d44 100%); box-shadow:inset -2px -2px 5px rgba(0,0,0,0.5), inset 2px 2px 5px rgba(255,255,255,0.1);';
+                            } else if (cell === 'P') {
+                                // Player - animated character
+                                style += 'background:linear-gradient(135deg, #FF9800 0%, #F57C00 100%); border-radius:50%; box-shadow:0 0 15px rgba(255, 152, 0, 0.8), inset -2px -2px 5px rgba(0,0,0,0.3); animation:pulse 1s infinite;';
+                                content = '<div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); font-size:1.2em;">🏃</div>';
+                            } else if (cell === 'G') {
+                                // Goal - sparkling treasure
+                                style += 'background:linear-gradient(135deg, #FFD700 0%, #FFA500 100%); border-radius:5px; box-shadow:0 0 20px rgba(255, 215, 0, 0.9); animation:pulse 2s infinite;';
+                                content = '<div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); font-size:1.5em;">💎</div>';
+                            } else if (cell === 'C') {
+                                // Coin
+                                style += 'background:linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%);';
+                                content = '<div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); font-size:1.2em; animation:spin 3s linear infinite;">🪙</div>';
+                            } else if (cell === 'K') {
+                                // Key
+                                style += 'background:linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%);';
+                                content = '<div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); font-size:1.2em;">🔑</div>';
+                            } else if (cell === 'D') {
+                                // Door (locked)
+                                style += 'background:linear-gradient(135deg, #8B4513 0%, #654321 100%); box-shadow:inset -2px -2px 5px rgba(0,0,0,0.5);';
+                                content = '<div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); font-size:1.2em;">🚪</div>';
+                            } else {
+                                // Path - subtle gradient
+                                style += 'background:linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%);';
+                            }
+                            
+                            return `<div class="maze-cell" data-x="${x}" data-y="${y}" style="${style}">${content}</div>`;
+                        }).join('')}
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+        
+        <!-- Controls -->
+        <div style="margin:30px auto; max-width:400px;">
+            <div style="background:rgba(102, 126, 234, 0.1); padding:20px; border-radius:15px; margin-bottom:20px;">
+                <p style="font-size:1.1em; margin-bottom:10px;">💡 <strong>Oyun Kuralları:</strong></p>
+                <ul style="text-align:left; margin:0; padding-left:25px; line-height:1.8;">
+                    <li>Ok tuşları ile labirentte ilerle 🎯</li>
+                    <li>Yoldaki altınları topla 🪙</li>
+                    ${level > 3 ? '<li>Anahtarı bul ve kapıyı aç 🔑🚪</li>' : ''}
+                    <li>Hazineye ulaş! 💎</li>
+                    <li>Daha az hamle = Daha çok puan! ⭐</li>
+                </ul>
+            </div>
+            
+            <div style="display:grid; grid-template-columns:repeat(3, 70px); gap:10px; justify-content:center; margin:20px auto;">
+                <div></div>
+                <button class="nav-btn" onclick="moveMaze('up')" style="width:70px; height:70px; font-size:2em; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);">⬆️</button>
+                <div></div>
+                <button class="nav-btn" onclick="moveMaze('left')" style="width:70px; height:70px; font-size:2em; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);">⬅️</button>
+                <div style="width:70px; height:70px; display:flex; align-items:center; justify-content:center; font-size:2em;">🏃</div>
+                <button class="nav-btn" onclick="moveMaze('right')" style="width:70px; height:70px; font-size:2em; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);">➡️</button>
+                <div></div>
+                <button class="nav-btn" onclick="moveMaze('down')" style="width:70px; height:70px; font-size:2em; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);">⬇️</button>
+                <div></div>
+            </div>
         </div>
         
         <div style="margin-top:30px;">
-            <button class="nav-btn" onclick="startMazeGame()">🔄 Yeniden Başlat</button>
-            <button class="nav-btn" onclick="renderGames()">🔙 Geri</button>
+            <button class="nav-btn" onclick="resetMazeGame()" style="background:#FF9800;">🔄 Yeniden Başlat</button>
+            <button class="nav-btn" onclick="exitMazeGame()" style="background:#f44336;">🔙 Geri</button>
         </div>
     `;
     
     document.getElementById('dynamic-content').innerHTML = html;
     window.mazeData = maze;
-    window.playerPos = {x: 0, y: 0};
-    updateMascotText('Ok tuşları ile labirentte ilerle ve hedefi bul! 🎯');
+    window.mazeSize = size;
+    
+    // Update UI
+    document.getElementById('maze-moves').textContent = window.mazeGameState.moves;
+    document.getElementById('maze-timer').textContent = window.mazeGameState.timeElapsed;
+    
+    updateMascotText(`Seviye ${level}! Labirentte ilerle, altınları topla ve hazineyi bul! ${level > 3 ? 'Bu seviyede kapı var, önce anahtarı bul! 🔑' : ''} 🎯`);
 }
 
-function generateMaze(width, height, level) {
-    const maze = Array(height).fill(0).map(() => Array(width).fill(0));
+// Professional maze generation using recursive backtracking algorithm
+function generateProMaze(width, height, level) {
+    const maze = Array(height).fill(0).map(() => Array(width).fill(1)); // Start with all walls
     
-    // Basit labirent - bazı duvarlar
-    for (let i = 0; i < level * 5; i++) {
-        const x = Math.floor(Math.random() * width);
-        const y = Math.floor(Math.random() * height);
-        if (!(x === 0 && y === 0) && !(x === width-1 && y === height-1)) {
-            maze[y][x] = 1;
+    // Recursive backtracking maze generation
+    function carveMaze(x, y) {
+        maze[y][x] = 0; // Mark as path
+        
+        // Directions: up, right, down, left
+        const directions = [
+            [0, -2], [2, 0], [0, 2], [-2, 0]
+        ];
+        
+        // Shuffle directions for randomness
+        for (let i = directions.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [directions[i], directions[j]] = [directions[j], directions[i]];
+        }
+        
+        for (const [dx, dy] of directions) {
+            const nx = x + dx;
+            const ny = y + dy;
+            
+            if (nx > 0 && nx < width - 1 && ny > 0 && ny < height - 1 && maze[ny][nx] === 1) {
+                maze[y + dy / 2][x + dx / 2] = 0; // Carve path between cells
+                carveMaze(nx, ny);
+            }
         }
     }
     
-    maze[0][0] = 'P'; // Player
-    maze[height-1][width-1] = 'G'; // Goal
+    // Start carving from (1, 1)
+    carveMaze(1, 1);
+    
+    // Ensure start and end are accessible
+    maze[0][0] = 0;
+    maze[height - 1][width - 1] = 0;
+    maze[0][1] = 0;
+    maze[1][0] = 0;
+    maze[height - 2][width - 1] = 0;
+    maze[height - 1][width - 2] = 0;
+    
+    // Add coins along the path (more in higher levels)
+    const coinCount = Math.min(3 + level, 10);
+    let coinsPlaced = 0;
+    for (let attempt = 0; attempt < 100 && coinsPlaced < coinCount; attempt++) {
+        const x = Math.floor(Math.random() * width);
+        const y = Math.floor(Math.random() * height);
+        if (maze[y][x] === 0 && !(x === 0 && y === 0) && !(x === width - 1 && y === height - 1)) {
+            maze[y][x] = 'C'; // Coin
+            coinsPlaced++;
+        }
+    }
+    
+    // Add key and door for levels > 3
+    if (level > 3) {
+        // Place key somewhere in the maze
+        let keyPlaced = false;
+        for (let attempt = 0; attempt < 50 && !keyPlaced; attempt++) {
+            const x = Math.floor(Math.random() * width);
+            const y = Math.floor(Math.random() * height);
+            if (maze[y][x] === 0 && Math.abs(x - 0) + Math.abs(y - 0) > 5) {
+                maze[y][x] = 'K';
+                keyPlaced = true;
+            }
+        }
+        
+        // Place door near the goal
+        let doorPlaced = false;
+        for (let attempt = 0; attempt < 50 && !doorPlaced; attempt++) {
+            const x = Math.floor(Math.random() * (width - 2)) + 1;
+            const y = Math.floor(Math.random() * (height - 2)) + 1;
+            if (maze[y][x] === 0 && Math.abs(x - (width - 1)) + Math.abs(y - (height - 1)) < 4) {
+                maze[y][x] = 'D';
+                doorPlaced = true;
+            }
+        }
+    }
+    
+    // Set player and goal
+    maze[0][0] = 'P';
+    maze[height - 1][width - 1] = 'G';
+    
+    // Store initial player position
+    window.playerPos = {x: 0, y: 0, hasKey: false};
     
     return maze;
 }
@@ -6199,6 +6373,7 @@ function generateMaze(width, height, level) {
 window.moveMaze = function(direction) {
     const pos = window.playerPos;
     const maze = window.mazeData;
+    const size = window.mazeSize;
     let newX = pos.x, newY = pos.y;
     
     switch(direction) {
@@ -6209,15 +6384,46 @@ window.moveMaze = function(direction) {
     }
     
     // Check boundaries
-    if (newX < 0 || newX >= 10 || newY < 0 || newY >= 10) {
+    if (newX < 0 || newX >= size || newY < 0 || newY >= size) {
         sounds.wrong();
+        showNotification('❌ Duvara çarpamazsın!', 'warning');
         return;
     }
     
     // Check wall
     if (maze[newY][newX] === 1) {
         sounds.wrong();
+        showNotification('🧱 Bu duvardan geçemezsin!', 'warning');
         return;
+    }
+    
+    // Check door
+    if (maze[newY][newX] === 'D') {
+        if (!pos.hasKey) {
+            sounds.wrong();
+            showNotification('🚪 Kapı kilitli! Önce anahtarı bul! 🔑', 'warning');
+            return;
+        } else {
+            showNotification('🔑 Kapıyı açtın!', 'success');
+            sounds.correct();
+        }
+    }
+    
+    // Collect coin
+    if (maze[newY][newX] === 'C') {
+        window.mazeGameState.coinsCollected++;
+        document.getElementById('maze-coins').textContent = `${window.mazeGameState.coinsCollected}/${window.mazeGameState.totalCoins}`;
+        showNotification('🪙 Altın topladın! +10 puan!', 'success');
+        sounds.correct();
+        gameScores.maze = (gameScores.maze || 0) + 10;
+        saveProgress();
+    }
+    
+    // Collect key
+    if (maze[newY][newX] === 'K') {
+        pos.hasKey = true;
+        showNotification('🔑 Anahtarı buldun! Artık kapıyı açabilirsin!', 'success');
+        sounds.correct();
     }
     
     // Move player
@@ -6225,22 +6431,61 @@ window.moveMaze = function(direction) {
     pos.x = newX;
     pos.y = newY;
     
+    // Update moves
+    window.mazeGameState.moves++;
+    
     // Check goal
-    if (newX === 9 && newY === 9) {
-        showNotification('🎉 Seviye tamamlandı!', 'success');
+    if (maze[newY][newX] === 'G') {
+        // Clear timer
+        if (window.mazeGameState.timer) {
+            clearInterval(window.mazeGameState.timer);
+        }
+        
+        const timeBonus = Math.max(0, 100 - window.mazeGameState.timeElapsed);
+        const moveBonus = Math.max(0, 100 - window.mazeGameState.moves);
+        const coinBonus = window.mazeGameState.coinsCollected * 10;
+        const totalBonus = timeBonus + moveBonus + coinBonus + 100;
+        
+        showNotification(`🏆 Seviye Tamamlandı!<br>⏱️ Süre: ${window.mazeGameState.timeElapsed}s (+${timeBonus})<br>👣 Hamle: ${window.mazeGameState.moves} (+${moveBonus})<br>🪙 Altın: ${window.mazeGameState.coinsCollected} (+${coinBonus})<br>⭐ Toplam: +${totalBonus} puan!`, 'success');
+        
         gameScores.mazeLevel = (gameScores.mazeLevel || 0) + 1;
-        gameScores.maze = (gameScores.maze || 0) + 100;
+        gameScores.maze = (gameScores.maze || 0) + totalBonus;
         saveProgress();
         sounds.win();
-        setTimeout(() => startMazeGame(), 2000);
+        
+        window.mazeGameState.resetNeeded = true;
+        setTimeout(() => {
+            if (gameScores.mazeLevel >= 10) {
+                showNotification('🎉🏆 TÜM SEVİYELERİ TAMAMLADIN! SÜPER! 🏆🎉', 'success');
+                setTimeout(() => renderGames(), 2000);
+            } else {
+                startMazeGame();
+            }
+        }, 3000);
         return;
     }
     
     maze[newY][newX] = 'P';
     sounds.click();
     
-    // Re-render
+    // Re-render with smooth transition
     startMazeGame();
+};
+
+window.resetMazeGame = function() {
+    if (window.mazeGameState && window.mazeGameState.timer) {
+        clearInterval(window.mazeGameState.timer);
+    }
+    window.mazeGameState = {resetNeeded: true};
+    startMazeGame();
+};
+
+window.exitMazeGame = function() {
+    if (window.mazeGameState && window.mazeGameState.timer) {
+        clearInterval(window.mazeGameState.timer);
+    }
+    window.mazeGameState = null;
+    renderGames();
 };
 
 // ===== HAZİNE AVCISI (OYUN #11) =====
