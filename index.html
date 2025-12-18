@@ -2692,8 +2692,6 @@ function showSection(section) {
     gameArea.style.display = 'flex';
     
     // İçeriği yükle
-    let html = '';
-    
     switch(section) {
         case 'home':
             renderHome();
@@ -2792,7 +2790,6 @@ function showSection(section) {
             renderHome();
     }
     
-    content.innerHTML = html;
     sounds.click();
 }
 
