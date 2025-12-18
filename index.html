@@ -7261,6 +7261,47 @@ window.clearArtCanvas = function() {
 
 // ===== ROBOT YAPIMCISI (OYUN #20) - PROFESSIONAL VERSION =====
 function startRobotGame() {
+    // Translation map for backward compatibility
+    const translationMap = {
+        'Classic': 'Klasik',
+        'Combat': 'Savaş',
+        'Scanner': 'Tarayıcı',
+        'Heavy': 'Ağır',
+        'Stealth': 'Gizli',
+        'Elite': 'Elit',
+        'Standard': 'Standart',
+        'Armored': 'Zırhlı',
+        'Light': 'Hafif',
+        'Tank': 'Tank',
+        'Reactor': 'Reaktör',
+        'Compact': 'Kompakt',
+        'Basic': 'Temel',
+        'Drill': 'Matkap',
+        'Claw': 'Pençe',
+        'Precision': 'Hassas',
+        'Powered': 'Güçlü',
+        'Default': 'Varsayılan',
+        'Wheels': 'Tekerlekler',
+        'Treads': 'Paletler',
+        'Jump': 'Zıplama',
+        'Hover': 'Hava Yastığı',
+        'Spider': 'Örümcek',
+        'None': 'Yok',
+        'Laser': 'Lazer',
+        'Cannon': 'Top',
+        'Sword': 'Kılıç',
+        'Shield': 'Kalkan',
+        'Blaster': 'Atıcı'
+    };
+    
+    // Function to migrate old English part names to Turkish
+    const migratePart = (part) => {
+        if (part && part.type && translationMap[part.type]) {
+            part.type = translationMap[part.type];
+        }
+        return part;
+    };
+    
     // Initialize robot state if not exists
     if (!window.robotState) {
         window.robotState = {
@@ -7276,6 +7317,11 @@ function startRobotGame() {
             activeTab: 'heads',
             selectedPart: 'head'
         };
+    } else {
+        // Migrate existing robot parts from English to Turkish
+        Object.keys(window.robotState.parts).forEach(partKey => {
+            window.robotState.parts[partKey] = migratePart(window.robotState.parts[partKey]);
+        });
     }
     
     const html = `
@@ -8067,6 +8113,7 @@ function getRobotPartSVG(partKey, type, color) {
     // Weapon designs
     if (partKey === 'weapon') {
         const designs = {
+            'Yok': '',
             'Lazer': `
                 <rect x="10" y="30" width="60" height="15" fill="${color}" stroke="#000" stroke-width="2" rx="3"/>
                 <rect x="65" y="25" width="25" height="25" fill="#ff0000" class="glow-effect"/>
