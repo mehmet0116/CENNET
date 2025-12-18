@@ -1,5 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Mete\'nin Eğitici Dünyası</string>
+    <string name="app_name">CENNET - Mete\'nin Eğitici Dünyası</string>
+    <string name="no_internet">İnternet bağlantısı yok</string>
+    <string name="retry">Tekrar Dene</string>
     <string name="loading">Yükleniyor...</string>
+    <string name="error">Hata oluştu</string>
 </resources>

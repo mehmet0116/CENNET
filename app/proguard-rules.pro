@@ -20,21 +20,58 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
-# Keep WebView JavaScript interfaces
+# R8 configuration
+-keep class com.mete.cennet.** { *; }
+-keep class * extends android.webkit.WebChromeClient { *; }
+-keep class * extends android.webkit.WebViewClient { *; }
+
+# WebView JavaScript interface
 -keepclassmembers class * {
     @android.webkit.JavascriptInterface <methods>;
 }
 
-# Keep WebView related classes
--keepclassmembers class android.webkit.WebView {
-   public *;
+# Keep - Applications. Keep all application classes, along with their 'main'
+# method.
+-keepclasseswithmembers public class * {
+    public static void main(java.lang.String[]);
 }
 
--keepclassmembers class * extends android.webkit.WebViewClient {
-    public void *(android.webkit.WebView, java.lang.String, android.graphics.Bitmap);
-    public boolean *(android.webkit.WebView, java.lang.String);
+# Keep - Native methods. Keep all native class/method pairs.
+-keepclasseswithmembernames class * {
+    native <methods>;
 }
 
--keepclassmembers class * extends android.webkit.WebChromeClient {
-    public void *(android.webkit.WebView, java.lang.String);
+# Keep - Enum classes. Keep the special static methods that are required in
+# enumeration classes.
+-keepclassmembers enum * {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
 }
+
+# Keep - Keep generic signature. Keep attributes that are required for
+# reflection.
+-keepattributes Signature,InnerClasses,EnclosingMethod
+
+# Keep - Keep runtime annotations.
+-keepattributes RuntimeVisibleAnnotations,AnnotationDefault
+
+# For using Kotlin
+-keep class kotlin.** { *; }
+-keep class kotlin.Metadata { *; }
+-dontwarn kotlin.**
+
+# For using Kotlin coroutines
+-keep class kotlinx.coroutines.** { *; }
+-dontwarn kotlinx.coroutines.**
+
+# AndroidX
+-keep class androidx.** { *; }
+-dontwarn androidx.**
+
+# Material Components
+-keep class com.google.android.material.** { *; }
+-dontwarn com.google.android.material.**
+
+# WebKit
+-keep class androidx.webkit.** { *; }
+-dontwarn androidx.webkit.**
