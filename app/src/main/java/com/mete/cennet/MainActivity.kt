@@ -63,9 +63,6 @@ class MainActivity : AppCompatActivity() {
                 loadWithOverviewMode = true
                 useWideViewPort = true
                 
-                // Enable better performance
-                setRenderPriority(WebSettings.RenderPriority.HIGH)
-                
                 // Media playback
                 mediaPlaybackRequiresUserGesture = false
             }
