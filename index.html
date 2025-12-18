@@ -5579,6 +5579,564 @@ function resetRoutines() {
     renderRoutine();
 }
 
+// ===== MEGA PUZZLE (OYUN #9) =====
+function startPuzzleGame() {
+    const puzzleTypes = [
+        { name: 'Sayı Sırala', icon: '🔢', type: 'number' },
+        { name: 'Resim Parçala', icon: '🖼️', type: 'image' },
+        { name: 'Kelime Bul', icon: '🔤', type: 'word' },
+        { name: 'Renk Eşleştir', icon: '🎨', type: 'color' }
+    ];
+    
+    const html = `
+        <h2>🧩 Mega Puzzle</h2>
+        <p>Hangi puzzle türünü oynamak istersin?</p>
+        
+        <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:20px; max-width:600px; margin:30px auto;">
+            ${puzzleTypes.map((puzzle, index) => `
+                <div onclick="startPuzzleType('${puzzle.type}')" 
+                     style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding:40px; border-radius:20px; cursor:pointer; transition:0.3s; text-align:center; color:white;"
+                     onmouseover="this.style.transform='scale(1.05)'"
+                     onmouseout="this.style.transform='scale(1)'">
+                    <div style="font-size:4em; margin-bottom:15px;">${puzzle.icon}</div>
+                    <div style="font-size:1.5em; font-weight:bold;">${puzzle.name}</div>
+                </div>
+            `).join('')}
+        </div>
+        
+        <div style="margin-top:30px;">
+            <button class="nav-btn" onclick="renderGames()">🔙 Geri</button>
+        </div>
+    `;
+    
+    document.getElementById('dynamic-content').innerHTML = html;
+    updateMascotText('4 farklı puzzle türü var! Hangisini denemek istersin?');
+}
+
+function startPuzzleType(type) {
+    if (type === 'number') {
+        // Sayı sıralama puzzle
+        const numbers = Array.from({length: 9}, (_, i) => i + 1).sort(() => Math.random() - 0.5);
+        const html = `
+            <h2>🔢 Sayı Sırala Puzzle</h2>
+            <p>Sayıları 1'den 9'a kadar sırala!</p>
+            
+            <div id="puzzle-grid" style="display:grid; grid-template-columns:repeat(3, 100px); gap:10px; justify-content:center; margin:30px auto;">
+                ${numbers.map((num, idx) => `
+                    <div class="puzzle-tile" data-value="${num}" 
+                         style="width:100px; height:100px; background:#4CAF50; color:white; display:flex; align-items:center; justify-content:center; font-size:2em; font-weight:bold; border-radius:10px; cursor:pointer; user-select:none;"
+                         onclick="swapPuzzleTile(${idx})">
+                        ${num}
+                    </div>
+                `).join('')}
+            </div>
+            
+            <div style="margin-top:30px;">
+                <button class="nav-btn" onclick="checkPuzzleSolution()">✅ Kontrol Et</button>
+                <button class="nav-btn" onclick="startPuzzleType('number')">🔄 Yeniden</button>
+                <button class="nav-btn" onclick="startPuzzleGame()">🔙 Geri</button>
+            </div>
+        `;
+        
+        document.getElementById('dynamic-content').innerHTML = html;
+        window.puzzleSelected = null;
+        updateMascotText('Sayıları doğru sıraya koy! İki sayıya tıklayarak yerlerini değiştirebilirsin.');
+    } else {
+        showNotification('Bu puzzle türü yakında eklenecek! 🎮', 'info');
+        startPuzzleGame();
+    }
+}
+
+window.swapPuzzleTile = function(index) {
+    const tiles = document.querySelectorAll('.puzzle-tile');
+    
+    if (window.puzzleSelected === null) {
+        window.puzzleSelected = index;
+        tiles[index].style.border = '3px solid #FF9800';
+    } else {
+        // Swap
+        const tile1 = tiles[window.puzzleSelected];
+        const tile2 = tiles[index];
+        
+        const temp = tile1.dataset.value;
+        tile1.dataset.value = tile2.dataset.value;
+        tile2.dataset.value = temp;
+        
+        tile1.textContent = tile1.dataset.value;
+        tile2.textContent = tile2.dataset.value;
+        
+        tile1.style.border = 'none';
+        window.puzzleSelected = null;
+        sounds.click();
+    }
+};
+
+window.checkPuzzleSolution = function() {
+    const tiles = document.querySelectorAll('.puzzle-tile');
+    let correct = true;
+    
+    tiles.forEach((tile, idx) => {
+        if (parseInt(tile.dataset.value) !== idx + 1) {
+            correct = false;
+        }
+    });
+    
+    if (correct) {
+        showNotification('🎉 Tebrikler! Puzzle\'ı tamamladın!', 'success');
+        gameScores.puzzle = (gameScores.puzzle || 0) + 50;
+        saveProgress();
+        sounds.win();
+    } else {
+        showNotification('Henüz doğru değil, devam et! 💪', 'warning');
+        sounds.wrong();
+    }
+};
+
+// ===== LABİRENT MACERASI (OYUN #10) =====
+function startMazeGame() {
+    const level = (gameScores.mazeLevel || 0) + 1;
+    const maxLevel = 10;
+    
+    // Basit 10x10 labirent
+    const maze = generateMaze(10, 10, level);
+    
+    const html = `
+        <h2>🌀 Labirent Macerası</h2>
+        <p>Seviye ${Math.min(level, maxLevel)}/${maxLevel} - Hedefi bul!</p>
+        
+        <div id="maze-container" style="display:inline-block; margin:20px auto; background:#333; padding:10px; border-radius:10px;">
+            ${maze.map((row, y) => `
+                <div style="display:flex;">
+                    ${row.map((cell, x) => `
+                        <div class="maze-cell" data-x="${x}" data-y="${y}"
+                             style="width:30px; height:30px; ${
+                                 cell === 1 ? 'background:#555;' :
+                                 cell === 'P' ? 'background:#FF9800; border-radius:50%;' :
+                                 cell === 'G' ? 'background:#4CAF50;' :
+                                 'background:#fff;'
+                             }">
+                        </div>
+                    `).join('')}
+                </div>
+            `).join('')}
+        </div>
+        
+        <div class="maze-controls" style="display:grid; grid-template-columns:repeat(3, 60px); gap:10px; justify-content:center; margin:20px;">
+            <div></div>
+            <button class="maze-btn nav-btn" onclick="moveMaze('up')" style="width:60px; height:60px;">⬆️</button>
+            <div></div>
+            <button class="maze-btn nav-btn" onclick="moveMaze('left')" style="width:60px; height:60px;">⬅️</button>
+            <div></div>
+            <button class="maze-btn nav-btn" onclick="moveMaze('right')" style="width:60px; height:60px;">➡️</button>
+            <div></div>
+            <button class="maze-btn nav-btn" onclick="moveMaze('down')" style="width:60px; height:60px;">⬇️</button>
+            <div></div>
+        </div>
+        
+        <div style="margin-top:30px;">
+            <button class="nav-btn" onclick="startMazeGame()">🔄 Yeniden Başlat</button>
+            <button class="nav-btn" onclick="renderGames()">🔙 Geri</button>
+        </div>
+    `;
+    
+    document.getElementById('dynamic-content').innerHTML = html;
+    window.mazeData = maze;
+    window.playerPos = {x: 0, y: 0};
+    updateMascotText('Ok tuşları ile labirentte ilerle ve hedefi bul! 🎯');
+}
+
+function generateMaze(width, height, level) {
+    const maze = Array(height).fill(0).map(() => Array(width).fill(0));
+    
+    // Basit labirent - bazı duvarlar
+    for (let i = 0; i < level * 5; i++) {
+        const x = Math.floor(Math.random() * width);
+        const y = Math.floor(Math.random() * height);
+        if (!(x === 0 && y === 0) && !(x === width-1 && y === height-1)) {
+            maze[y][x] = 1;
+        }
+    }
+    
+    maze[0][0] = 'P'; // Player
+    maze[height-1][width-1] = 'G'; // Goal
+    
+    return maze;
+}
+
+window.moveMaze = function(direction) {
+    const pos = window.playerPos;
+    const maze = window.mazeData;
+    let newX = pos.x, newY = pos.y;
+    
+    switch(direction) {
+        case 'up': newY--; break;
+        case 'down': newY++; break;
+        case 'left': newX--; break;
+        case 'right': newX++; break;
+    }
+    
+    // Check boundaries
+    if (newX < 0 || newX >= 10 || newY < 0 || newY >= 10) {
+        sounds.wrong();
+        return;
+    }
+    
+    // Check wall
+    if (maze[newY][newX] === 1) {
+        sounds.wrong();
+        return;
+    }
+    
+    // Move player
+    maze[pos.y][pos.x] = 0;
+    pos.x = newX;
+    pos.y = newY;
+    
+    // Check goal
+    if (newX === 9 && newY === 9) {
+        showNotification('🎉 Seviye tamamlandı!', 'success');
+        gameScores.mazeLevel = (gameScores.mazeLevel || 0) + 1;
+        gameScores.maze = (gameScores.maze || 0) + 100;
+        saveProgress();
+        sounds.win();
+        setTimeout(() => startMazeGame(), 2000);
+        return;
+    }
+    
+    maze[newY][newX] = 'P';
+    sounds.click();
+    
+    // Re-render
+    startMazeGame();
+};
+
+// ===== HAZİNE AVCISI (OYUN #11) =====
+function startTreasureGame() {
+    const gridSize = 8;
+    const treasureX = Math.floor(Math.random() * gridSize);
+    const treasureY = Math.floor(Math.random() * gridSize);
+    
+    const html = `
+        <h2>🗺️ Hazine Avcısı</h2>
+        <p>Haritada gizli hazineyi bul! Yakınlık ipuçları verilecek.</p>
+        
+        <div style="background:linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding:30px; border-radius:20px; margin:20px auto; max-width:400px; color:white;">
+            <div style="font-size:2em; margin-bottom:10px;">🎯 Deneme Sayısı</div>
+            <div id="treasure-attempts" style="font-size:3em; font-weight:bold;">0</div>
+        </div>
+        
+        <div id="treasure-grid" style="display:grid; grid-template-columns:repeat(${gridSize}, 50px); gap:5px; justify-content:center; margin:30px auto;">
+            ${Array(gridSize * gridSize).fill(0).map((_, idx) => {
+                const x = idx % gridSize;
+                const y = Math.floor(idx / gridSize);
+                return `
+                    <div class="treasure-cell" data-x="${x}" data-y="${y}"
+                         onclick="checkTreasure(${x}, ${y})"
+                         style="width:50px; height:50px; background:#4CAF50; border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:1.5em; transition:0.3s;"
+                         onmouseover="this.style.transform='scale(1.1)'"
+                         onmouseout="this.style.transform='scale(1)'">
+                        ❓
+                    </div>
+                `;
+            }).join('')}
+        </div>
+        
+        <div id="treasure-hint" style="font-size:1.5em; margin:20px; font-weight:bold; min-height:50px;"></div>
+        
+        <div style="margin-top:30px;">
+            <button class="nav-btn" onclick="startTreasureGame()">🔄 Yeni Oyun</button>
+            <button class="nav-btn" onclick="renderGames()">🔙 Geri</button>
+        </div>
+    `;
+    
+    document.getElementById('dynamic-content').innerHTML = html;
+    window.treasurePos = {x: treasureX, y: treasureY};
+    window.attempts = 0;
+    updateMascotText('Hazineyi bul! Her tıklamada ne kadar yakın olduğunu söyleyeceğim. 🗺️');
+}
+
+window.checkTreasure = function(x, y) {
+    const treasure = window.treasurePos;
+    window.attempts++;
+    
+    document.getElementById('treasure-attempts').textContent = window.attempts;
+    
+    if (x === treasure.x && y === treasure.y) {
+        const cell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+        cell.textContent = '💎';
+        cell.style.background = '#FFD700';
+        
+        showNotification(`🎉 Hazineyi buldun! ${window.attempts} denemede!`, 'success');
+        gameScores.treasure = (gameScores.treasure || 0) + (100 - window.attempts * 5);
+        saveProgress();
+        sounds.win();
+        
+        setTimeout(() => {
+            if (confirm('Yeni bir hazine aramak ister misin?')) {
+                startTreasureGame();
+            } else {
+                renderGames();
+            }
+        }, 2000);
+    } else {
+        const distance = Math.abs(x - treasure.x) + Math.abs(y - treasure.y);
+        const cell = document.querySelector(`[data-x="${x}"][data-y="${y}"]`);
+        
+        if (distance <= 1) {
+            cell.textContent = '🔥';
+            cell.style.background = '#FF5722';
+            document.getElementById('treasure-hint').textContent = '🔥 Çok yaklaştın!';
+        } else if (distance <= 3) {
+            cell.textContent = '⚡';
+            cell.style.background = '#FF9800';
+            document.getElementById('treasure-hint').textContent = '⚡ Sıcak!';
+        } else if (distance <= 5) {
+            cell.textContent = '❄️';
+            cell.style.background = '#2196F3';
+            document.getElementById('treasure-hint').textContent = '❄️ Soğuk!';
+        } else {
+            cell.textContent = '🧊';
+            cell.style.background = '#607D8B';
+            document.getElementById('treasure-hint').textContent = '🧊 Çok uzak!';
+        }
+        
+        sounds.click();
+    }
+};
+
+// ===== RİTİM DÜNYASI (OYUN #12) =====
+function startRhythmGame() {
+    const notes = ['🎵', '🎶', '🎼', '🎹'];
+    const sequence = Array(5).fill(0).map(() => notes[Math.floor(Math.random() * notes.length)]);
+    
+    const html = `
+        <h2>🎵 Ritim Dünyası</h2>
+        <p>Ritmi takip et ve tekrarla!</p>
+        
+        <div style="background:linear-gradient(135deg, #11998e 0%, #38ef7d 100%); padding:40px; border-radius:20px; margin:20px auto; max-width:500px; color:white;">
+            <div style="font-size:1.5em; margin-bottom:20px;">Ritim Sekansı:</div>
+            <div id="rhythm-sequence" style="font-size:4em; display:flex; justify-content:center; gap:20px; min-height:100px; align-items:center;">
+                ${sequence.map(note => `<span>${note}</span>`).join('')}
+            </div>
+        </div>
+        
+        <div style="margin:30px;">
+            <div style="font-size:1.3em; margin-bottom:15px;">Sekansı Tekrarla:</div>
+            <div style="display:flex; justify-content:center; gap:15px; flex-wrap:wrap;">
+                ${notes.map(note => `
+                    <button onclick="playRhythmNote('${note}')" 
+                            style="width:80px; height:80px; font-size:3em; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); border:none; border-radius:15px; cursor:pointer; transition:0.2s; color:white;"
+                            onmousedown="this.style.transform='scale(0.95)'"
+                            onmouseup="this.style.transform='scale(1)'">
+                        ${note}
+                    </button>
+                `).join('')}
+            </div>
+        </div>
+        
+        <div id="rhythm-player" style="font-size:3em; margin:20px; min-height:60px;"></div>
+        
+        <div id="rhythm-feedback" style="font-size:1.5em; margin:20px; font-weight:bold;"></div>
+        
+        <div style="margin-top:30px;">
+            <button class="nav-btn" onclick="startRhythmGame()">🔄 Yeni Ritim</button>
+            <button class="nav-btn" onclick="renderGames()">🔙 Geri</button>
+        </div>
+    `;
+    
+    document.getElementById('dynamic-content').innerHTML = html;
+    window.rhythmSequence = sequence;
+    window.playerSequence = [];
+    updateMascotText('Ritmi izle ve aynısını tekrarla! 🎵');
+}
+
+window.playRhythmNote = function(note) {
+    window.playerSequence.push(note);
+    
+    const playerDiv = document.getElementById('rhythm-player');
+    playerDiv.textContent = window.playerSequence.join(' ');
+    sounds.click();
+    
+    // Check if complete
+    if (window.playerSequence.length === window.rhythmSequence.length) {
+        setTimeout(() => {
+            const correct = window.playerSequence.every((note, idx) => note === window.rhythmSequence[idx]);
+            
+            const feedback = document.getElementById('rhythm-feedback');
+            if (correct) {
+                feedback.textContent = '🎉 Mükemmel! Ritmi doğru tekrarladın!';
+                feedback.style.color = '#4CAF50';
+                gameScores.rhythm = (gameScores.rhythm || 0) + 50;
+                saveProgress();
+                sounds.win();
+            } else {
+                feedback.textContent = '❌ Yanlış! Tekrar dene!';
+                feedback.style.color = '#F44336';
+                sounds.wrong();
+            }
+            
+            window.playerSequence = [];
+        }, 500);
+    }
+};
+
+// ===== UZAY MACERASI (OYUN #13) =====
+function startSpaceGame() {
+    const planets = [
+        { name: 'Merkür', emoji: '☿️', fact: 'Güneşe en yakın gezegen' },
+        { name: 'Venüs', emoji: '♀️', fact: 'En sıcak gezegen' },
+        { name: 'Dünya', emoji: '🌍', fact: 'Yaşam olan tek gezegen' },
+        { name: 'Mars', emoji: '♂️', fact: 'Kırmızı gezegen' },
+        { name: 'Jüpiter', emoji: '♃', fact: 'En büyük gezegen' },
+        { name: 'Satürn', emoji: '♄', fact: 'Halkaları olan gezegen' },
+        { name: 'Uranüs', emoji: '♅', fact: 'Yatık dönen gezegen' },
+        { name: 'Neptün', emoji: '♆', fact: 'En uzak gezegen' }
+    ];
+    
+    let currentPlanet = 0;
+    
+    const html = `
+        <h2>🚀 Uzay Macerası</h2>
+        <p>Gezegenleri keşfet ve öğren!</p>
+        
+        <div style="background:linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%); padding:40px; border-radius:20px; margin:20px auto; max-width:600px; color:white; min-height:400px; display:flex; flex-direction:column; justify-content:center;">
+            <div id="planet-display" style="text-align:center;">
+                <div style="font-size:8em; margin:20px;">${planets[currentPlanet].emoji}</div>
+                <div style="font-size:2.5em; font-weight:bold; margin:15px;">${planets[currentPlanet].name}</div>
+                <div style="font-size:1.3em; margin:15px; opacity:0.9;">${planets[currentPlanet].fact}</div>
+            </div>
+        </div>
+        
+        <div style="margin:30px; display:flex; justify-content:center; gap:15px;">
+            <button class="nav-btn" onclick="changePlanet(-1)" ${currentPlanet === 0 ? 'disabled' : ''}>⬅️ Önceki</button>
+            <button class="nav-btn" onclick="changePlanet(1)" ${currentPlanet === planets.length - 1 ? 'disabled' : ''}>Sonraki ➡️</button>
+        </div>
+        
+        <div style="margin:20px;">
+            <div style="font-size:1.2em; margin-bottom:10px;">Keşfedilen: ${currentPlanet + 1}/${planets.length}</div>
+            <div style="height:20px; background:#ddd; border-radius:10px; overflow:hidden; max-width:400px; margin:0 auto;">
+                <div style="height:100%; width:${((currentPlanet + 1) / planets.length) * 100}%; background:linear-gradient(90deg, #4CAF50, #8BC34A); transition:0.5s;"></div>
+            </div>
+        </div>
+        
+        <div style="margin-top:30px;">
+            <button class="nav-btn" onclick="renderGames()">🔙 Geri</button>
+        </div>
+    `;
+    
+    document.getElementById('dynamic-content').innerHTML = html;
+    window.currentPlanetIndex = currentPlanet;
+    window.planetsData = planets;
+    
+    gameScores.space = (gameScores.space || 0) + 10;
+    saveProgress();
+    
+    updateMascotText(`${planets[currentPlanet].name} gezegenini keşfediyorsun! 🚀`);
+}
+
+window.changePlanet = function(direction) {
+    const newIndex = window.currentPlanetIndex + direction;
+    
+    if (newIndex >= 0 && newIndex < window.planetsData.length) {
+        window.currentPlanetIndex = newIndex;
+        sounds.click();
+        startSpaceGame();
+    }
+};
+
+// ===== AŞÇI USTASI (OYUN #14) =====
+function startCookingGame() {
+    const recipes = [
+        { name: 'Pizza', ingredients: ['🍅', '🧀', '🌿'], emoji: '🍕' },
+        { name: 'Hamburger', ingredients: ['🍞', '🥩', '🧀', '🥬'], emoji: '🍔' },
+        { name: 'Salata', ingredients: ['🥬', '🍅', '🥒'], emoji: '🥗' },
+        { name: 'Pasta', ingredients: ['🍝', '🍅', '🧀'], emoji: '🍝' }
+    ];
+    
+    const recipe = recipes[Math.floor(Math.random() * recipes.length)];
+    
+    const html = `
+        <h2>👨‍🍳 Aşçı Ustası</h2>
+        <p>Yemek pişir ve öğren!</p>
+        
+        <div style="background:linear-gradient(135deg, #fa709a 0%, #fee140 100%); padding:40px; border-radius:20px; margin:20px auto; max-width:500px; color:white;">
+            <div style="font-size:2em; margin-bottom:15px;">Yapılacak Yemek:</div>
+            <div style="font-size:5em; margin:20px;">${recipe.emoji}</div>
+            <div style="font-size:2em; font-weight:bold;">${recipe.name}</div>
+        </div>
+        
+        <div style="margin:30px;">
+            <div style="font-size:1.5em; margin-bottom:20px;">Gerekli Malzemeler:</div>
+            <div style="display:flex; justify-content:center; gap:20px; flex-wrap:wrap; margin:20px;">
+                ${recipe.ingredients.map(ing => `
+                    <div style="font-size:4em; padding:20px; background:white; border-radius:15px; box-shadow:0 4px 8px rgba(0,0,0,0.1);">
+                        ${ing}
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+        
+        <div style="margin:30px;">
+            <div style="font-size:1.5em; margin-bottom:20px;">Malzeme Seç:</div>
+            <div id="ingredient-selection" style="display:flex; justify-content:center; gap:15px; flex-wrap:wrap;">
+                ${['🍅', '🧀', '🌿', '🍞', '🥩', '🥬', '🥒', '🍝'].map(ing => `
+                    <button onclick="selectIngredient('${ing}')" 
+                            style="font-size:3em; padding:15px; background:#4CAF50; border:none; border-radius:15px; cursor:pointer; transition:0.2s;"
+                            onmousedown="this.style.transform='scale(0.95)'"
+                            onmouseup="this.style.transform='scale(1)'">
+                        ${ing}
+                    </button>
+                `).join('')}
+            </div>
+        </div>
+        
+        <div id="selected-ingredients" style="min-height:100px; margin:20px;">
+            <div style="font-size:1.3em; margin-bottom:10px;">Seçilen Malzemeler:</div>
+            <div id="selected-list" style="display:flex; justify-content:center; gap:15px; flex-wrap:wrap; font-size:3em;"></div>
+        </div>
+        
+        <div style="margin:30px;">
+            <button class="nav-btn" onclick="checkRecipe()">✅ Kontrol Et</button>
+            <button class="nav-btn" onclick="startCookingGame()">🔄 Yeni Tarif</button>
+            <button class="nav-btn" onclick="renderGames()">🔙 Geri</button>
+        </div>
+    `;
+    
+    document.getElementById('dynamic-content').innerHTML = html;
+    window.currentRecipe = recipe;
+    window.selectedIngredients = [];
+    updateMascotText(`${recipe.name} yapıyoruz! Doğru malzemeleri seç! 👨‍🍳`);
+}
+
+window.selectIngredient = function(ingredient) {
+    window.selectedIngredients.push(ingredient);
+    document.getElementById('selected-list').textContent = window.selectedIngredients.join(' ');
+    sounds.click();
+};
+
+window.checkRecipe = function() {
+    const recipe = window.currentRecipe;
+    const selected = window.selectedIngredients;
+    
+    // Check if all ingredients are correct
+    const correct = recipe.ingredients.length === selected.length &&
+                   recipe.ingredients.every(ing => selected.includes(ing)) &&
+                   selected.every(ing => recipe.ingredients.includes(ing));
+    
+    if (correct) {
+        showNotification('🎉 Harika! Yemeği doğru yaptın!', 'success');
+        gameScores.cooking = (gameScores.cooking || 0) + 50;
+        saveProgress();
+        sounds.win();
+        setTimeout(() => startCookingGame(), 2000);
+    } else {
+        showNotification('❌ Yanlış malzemeler! Tekrar dene!', 'warning');
+        window.selectedIngredients = [];
+        document.getElementById('selected-list').textContent = '';
+        sounds.wrong();
+    }
+};
+
 // ===== DİĞER OYUN FONKSİYONLARI =====
 function startWordGame() {
     // Basit bir kelime oyunu
@@ -5628,6 +6186,485 @@ function checkWordGuess(correctWord) {
         sounds.wrong();
     }
 }
+
+// ===== SÜPER QUİZ (OYUN #15) =====
+function startQuizGame() {
+    const quizQuestions = [
+        { question: 'Türkiye\'nin başkenti neresidir?', options: ['İstanbul', 'Ankara', 'İzmir', 'Antalya'], correct: 1 },
+        { question: 'Kaç mevsim vardır?', options: ['2', '3', '4', '5'], correct: 2 },
+        { question: 'Güneşe en yakın gezegen hangisidir?', options: ['Venüs', 'Mars', 'Merkür', 'Dünya'], correct: 2 },
+        { question: '2 + 2 kaç eder?', options: ['3', '4', '5', '6'], correct: 1 },
+        { question: 'Hangi hayvan miyavlar?', options: ['Köpek', 'Kedi', 'Kuş', 'Balık'], correct: 1 }
+    ];
+    
+    const question = quizQuestions[Math.floor(Math.random() * quizQuestions.length)];
+    
+    const html = `
+        <h2>❓ Süper Quiz</h2>
+        <p>Her konudan sorular!</p>
+        
+        <div style="background:linear-gradient(135deg, #8E0E00 0%, #1F1C18 100%); padding:40px; border-radius:20px; margin:20px auto; max-width:600px; color:white;">
+            <div style="font-size:1.8em; font-weight:bold; line-height:1.5; min-height:100px; display:flex; align-items:center; justify-content:center;">
+                ${question.question}
+            </div>
+        </div>
+        
+        <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:15px; max-width:600px; margin:30px auto;">
+            ${question.options.map((option, idx) => `
+                <button onclick="checkQuizAnswer(${idx}, ${question.correct})"
+                        style="padding:25px; font-size:1.3em; font-weight:bold; background:white; border:3px solid #ddd; border-radius:15px; cursor:pointer; transition:0.3s;"
+                        onmouseover="this.style.background='#E3F2FD'; this.style.borderColor='#2196F3'"
+                        onmouseout="this.style.background='white'; this.style.borderColor='#ddd'">
+                    ${option}
+                </button>
+            `).join('')}
+        </div>
+        
+        <div id="quiz-feedback" style="font-size:1.5em; margin:20px; font-weight:bold; min-height:50px;"></div>
+        
+        <div style="margin-top:30px;">
+            <button class="nav-btn" onclick="startQuizGame()">🔄 Yeni Soru</button>
+            <button class="nav-btn" onclick="renderGames()">🔙 Geri</button>
+        </div>
+    `;
+    
+    document.getElementById('dynamic-content').innerHTML = html;
+    updateMascotText('Quiz zamanı! Doğru cevabı seç! 🧠');
+}
+
+window.checkQuizAnswer = function(selected, correct) {
+    const feedback = document.getElementById('quiz-feedback');
+    
+    if (selected === correct) {
+        feedback.textContent = '✅ Doğru! Harikasın!';
+        feedback.style.color = '#4CAF50';
+        gameScores.quiz = (gameScores.quiz || 0) + 20;
+        saveProgress();
+        sounds.win();
+        setTimeout(() => startQuizGame(), 2000);
+    } else {
+        feedback.textContent = '❌ Yanlış! Tekrar dene!';
+        feedback.style.color = '#F44336';
+        sounds.wrong();
+    }
+};
+
+// ===== HİKAYE YAPIMCISI (OYUN #16) =====
+function startStoryMakerGame() {
+    const characters = ['🐶', '🐱', '🐰', '🦊', '🐻'];
+    const places = ['orman', 'park', 'okul', 'ev', 'deniz'];
+    const actions = ['oynadı', 'yürüdü', 'koştu', 'gezdi', 'dans etti'];
+    
+    const html = `
+        <h2>📖 Hikaye Yapımcısı</h2>
+        <p>Kendi hikayeni yarat!</p>
+        
+        <div style="background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding:30px; border-radius:20px; margin:20px auto; max-width:700px; color:white;">
+            <div style="font-size:1.5em; margin-bottom:20px;">Hikayeni Oluştur:</div>
+            
+            <div style="margin:20px 0;">
+                <div style="font-size:1.2em; margin-bottom:10px;">1. Karakter Seç:</div>
+                <div style="display:flex; gap:15px; justify-content:center; flex-wrap:wrap;">
+                    ${characters.map(char => `
+                        <button onclick="selectStoryElement('character', '${char}')" 
+                                style="font-size:3em; padding:15px; background:white; border:3px solid transparent; border-radius:15px; cursor:pointer;"
+                                id="char-${char}">
+                            ${char}
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+            
+            <div style="margin:20px 0;">
+                <div style="font-size:1.2em; margin-bottom:10px;">2. Yer Seç:</div>
+                <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+                    ${places.map(place => `
+                        <button onclick="selectStoryElement('place', '${place}')" 
+                                style="padding:15px 25px; font-size:1.2em; background:white; border:3px solid transparent; border-radius:15px; cursor:pointer; font-weight:bold;"
+                                id="place-${place}">
+                            ${place}
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+            
+            <div style="margin:20px 0;">
+                <div style="font-size:1.2em; margin-bottom:10px;">3. Eylem Seç:</div>
+                <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+                    ${actions.map(action => `
+                        <button onclick="selectStoryElement('action', '${action}')" 
+                                style="padding:15px 25px; font-size:1.2em; background:white; border:3px solid transparent; border-radius:15px; cursor:pointer; font-weight:bold;"
+                                id="action-${action}">
+                            ${action}
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+        
+        <div id="story-result" style="background:white; padding:30px; border-radius:20px; margin:20px auto; max-width:600px; min-height:150px; box-shadow:0 4px 8px rgba(0,0,0,0.1);">
+            <div style="font-size:1.3em; color:#666; margin-bottom:15px;">Hikayeniz:</div>
+            <div id="story-text" style="font-size:1.8em; line-height:1.6; font-weight:bold; color:#333;"></div>
+        </div>
+        
+        <div style="margin-top:30px;">
+            <button class="nav-btn" onclick="startStoryMakerGame()">🔄 Yeni Hikaye</button>
+            <button class="nav-btn" onclick="renderGames()">🔙 Geri</button>
+        </div>
+    `;
+    
+    document.getElementById('dynamic-content').innerHTML = html;
+    window.storyElements = { character: '', place: '', action: '' };
+    updateMascotText('Kendi hikayeni oluştur! Karakter, yer ve eylem seç! 📖');
+}
+
+window.selectStoryElement = function(type, value) {
+    window.storyElements[type] = value;
+    
+    // Highlight selected
+    document.querySelectorAll(`[id^="${type}-"]`).forEach(btn => {
+        btn.style.borderColor = 'transparent';
+    });
+    document.getElementById(`${type}-${value}`).style.borderColor = '#4CAF50';
+    
+    // Update story
+    const char = window.storyElements.character;
+    const place = window.storyElements.place;
+    const action = window.storyElements.action;
+    
+    if (char && place && action) {
+        document.getElementById('story-text').textContent = 
+            `Bir zamanlar ${char} ${place}'da ${action}.`;
+        sounds.correct();
+        
+        gameScores['story-maker'] = (gameScores['story-maker'] || 0) + 10;
+        saveProgress();
+    } else {
+        sounds.click();
+    }
+};
+
+// ===== ZAMAN YOLCULUĞU (OYUN #17) =====
+function startTimeTravelGame() {
+    const eras = [
+        { name: 'Dinozor Çağı', year: '65 Milyon Yıl Önce', emoji: '🦕', fact: 'Dinozorlar bu dönemde yaşadı' },
+        { name: 'Taş Devri', year: '10,000 Yıl Önce', emoji: '🗿', fact: 'İnsanlar mağaralarda yaşardı' },
+        { name: 'Orta Çağ', year: '1000 Yıl Önce', emoji: '🏰', fact: 'Şövalyeler ve kaleler vardı' },
+        { name: 'Modern Çağ', year: 'Günümüz', emoji: '🏙️', fact: 'Teknoloji çağındayız' },
+        { name: 'Gelecek', year: '2100', emoji: '🚀', fact: 'Uzay kolonileri olabilir' }
+    ];
+    
+    let currentEra = 0;
+    
+    const html = `
+        <h2>⏰ Zaman Yolculuğu</h2>
+        <p>Tarihi keşfet!</p>
+        
+        <div style="background:linear-gradient(135deg, #4e54c8 0%, #8f94fb 100%); padding:50px; border-radius:20px; margin:20px auto; max-width:600px; color:white; min-height:400px; display:flex; flex-direction:column; justify-content:center;">
+            <div id="era-display" style="text-align:center;">
+                <div style="font-size:8em; margin:20px;">${eras[currentEra].emoji}</div>
+                <div style="font-size:2.5em; font-weight:bold; margin:15px;">${eras[currentEra].name}</div>
+                <div style="font-size:1.5em; opacity:0.9; margin:10px;">${eras[currentEra].year}</div>
+                <div style="font-size:1.2em; margin:20px; background:rgba(255,255,255,0.2); padding:20px; border-radius:15px;">
+                    💡 ${eras[currentEra].fact}
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin:30px; display:flex; justify-content:center; gap:15px;">
+            <button class="nav-btn" onclick="changeEra(-1)" ${currentEra === 0 ? 'disabled' : ''}>⬅️ Geçmiş</button>
+            <button class="nav-btn" onclick="changeEra(1)" ${currentEra === eras.length - 1 ? 'disabled' : ''}>Gelecek ➡️</button>
+        </div>
+        
+        <div style="margin:20px;">
+            <div style="font-size:1.2em; margin-bottom:10px;">Zaman Çizelgesi: ${currentEra + 1}/${eras.length}</div>
+            <div style="display:flex; justify-content:center; gap:10px;">
+                ${eras.map((era, idx) => `
+                    <div style="width:40px; height:40px; border-radius:50%; background:${idx === currentEra ? '#4CAF50' : '#ddd'}; display:flex; align-items:center; justify-content:center; font-size:1.5em;">
+                        ${idx <= currentEra ? '✓' : ''}
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+        
+        <div style="margin-top:30px;">
+            <button class="nav-btn" onclick="renderGames()">🔙 Geri</button>
+        </div>
+    `;
+    
+    document.getElementById('dynamic-content').innerHTML = html;
+    window.currentEraIndex = currentEra;
+    window.erasData = eras;
+    
+    gameScores['time-travel'] = (gameScores['time-travel'] || 0) + 10;
+    saveProgress();
+    
+    updateMascotText(`${eras[currentEra].name}'ı keşfediyorsun! ⏰`);
+}
+
+window.changeEra = function(direction) {
+    const newIndex = window.currentEraIndex + direction;
+    
+    if (newIndex >= 0 && newIndex < window.erasData.length) {
+        window.currentEraIndex = newIndex;
+        sounds.click();
+        startTimeTravelGame();
+    }
+};
+
+// ===== DOĞA KORUYUCUSU (OYUN #18) =====
+function startNatureGame() {
+    const actions = [
+        { name: 'Ağaç Dik', emoji: '🌳', impact: '+10 Oksijen', good: true },
+        { name: 'Çöp Topla', emoji: '🗑️', impact: '+5 Temizlik', good: true },
+        { name: 'Su Tasarrufu', emoji: '💧', impact: '+8 Su', good: true },
+        { name: 'Geri Dönüşüm', emoji: '♻️', impact: '+7 Kaynak', good: true }
+    ];
+    
+    let ecoScore = 0;
+    
+    const html = `
+        <h2>🌳 Doğa Koruyucusu</h2>
+        <p>Çevreyi koru ve öğren!</p>
+        
+        <div style="background:linear-gradient(135deg, #56ab2f 0%, #a8e063 100%); padding:40px; border-radius:20px; margin:20px auto; max-width:600px; color:white;">
+            <div style="font-size:2em; margin-bottom:15px;">🌍 Çevre Puanı</div>
+            <div id="eco-score" style="font-size:4em; font-weight:bold;">${ecoScore}</div>
+        </div>
+        
+        <div style="margin:30px;">
+            <div style="font-size:1.5em; margin-bottom:20px;">Çevre Dostu Eylemler:</div>
+            <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:20px; max-width:600px; margin:0 auto;">
+                ${actions.map(action => `
+                    <div onclick="doEcoAction('${action.impact}')" 
+                         style="background:white; padding:30px; border-radius:15px; cursor:pointer; transition:0.3s; box-shadow:0 4px 8px rgba(0,0,0,0.1);"
+                         onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 16px rgba(0,0,0,0.2)'"
+                         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)'">
+                        <div style="font-size:4em; margin-bottom:10px;">${action.emoji}</div>
+                        <div style="font-size:1.3em; font-weight:bold; color:#333; margin-bottom:5px;">${action.name}</div>
+                        <div style="font-size:1em; color:#4CAF50; font-weight:bold;">${action.impact}</div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+        
+        <div id="eco-message" style="font-size:1.3em; margin:20px; font-weight:bold; min-height:50px;"></div>
+        
+        <div style="margin-top:30px;">
+            <button class="nav-btn" onclick="startNatureGame()">🔄 Yeniden Başla</button>
+            <button class="nav-btn" onclick="renderGames()">🔙 Geri</button>
+        </div>
+    `;
+    
+    document.getElementById('dynamic-content').innerHTML = html;
+    window.ecoScore = ecoScore;
+    updateMascotText('Çevreyi koru! Her iyi eylem puanını artırır! 🌍');
+}
+
+window.doEcoAction = function(impact) {
+    const points = parseInt(impact.match(/\d+/)[0]);
+    window.ecoScore += points;
+    
+    document.getElementById('eco-score').textContent = window.ecoScore;
+    document.getElementById('eco-message').textContent = `${impact}! Harika iş! 🌟`;
+    document.getElementById('eco-message').style.color = '#4CAF50';
+    
+    gameScores.nature = (gameScores.nature || 0) + points;
+    saveProgress();
+    sounds.correct();
+};
+
+// ===== SANAT ATÖLYESİ (OYUN #19) =====
+function startArtGame() {
+    const colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF', '#FFA500', '#800080'];
+    
+    const html = `
+        <h2>🎨 Sanat Atölyesi</h2>
+        <p>Resim yap ve boyama!</p>
+        
+        <div style="margin:20px auto; max-width:700px;">
+            <div style="background:white; padding:20px; border-radius:20px; box-shadow:0 4px 8px rgba(0,0,0,0.1);">
+                <canvas id="art-canvas" width="600" height="400" 
+                        style="border:3px solid #ddd; border-radius:10px; cursor:crosshair; display:block; margin:0 auto; background:white;">
+                </canvas>
+            </div>
+            
+            <div style="margin-top:20px; display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">
+                ${colors.map(color => `
+                    <button onclick="selectArtColor('${color}')" 
+                            style="width:50px; height:50px; background:${color}; border:3px solid white; border-radius:50%; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.2); transition:0.2s;"
+                            onmouseover="this.style.transform='scale(1.2)'"
+                            onmouseout="this.style.transform='scale(1)'">
+                    </button>
+                `).join('')}
+                
+                <button onclick="clearArtCanvas()" 
+                        style="padding:15px 25px; background:#F44336; color:white; border:none; border-radius:10px; cursor:pointer; font-weight:bold; margin-left:20px;">
+                    🗑️ Temizle
+                </button>
+            </div>
+            
+            <div style="margin-top:15px; text-align:center;">
+                <label style="font-size:1.2em; margin-right:10px;">Fırça Boyutu:</label>
+                <input type="range" min="1" max="20" value="5" 
+                       onchange="window.artBrushSize = this.value"
+                       style="width:200px; vertical-align:middle;">
+            </div>
+        </div>
+        
+        <div style="margin-top:30px;">
+            <button class="nav-btn" onclick="renderGames()">🔙 Geri</button>
+        </div>
+    `;
+    
+    document.getElementById('dynamic-content').innerHTML = html;
+    
+    // Initialize canvas
+    setTimeout(() => {
+        const canvas = document.getElementById('art-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        window.artCanvas = canvas;
+        window.artCtx = ctx;
+        window.artColor = '#000000';
+        window.artBrushSize = 5;
+        window.artIsDrawing = false;
+        
+        canvas.addEventListener('mousedown', (e) => {
+            window.artIsDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            window.artLastX = e.clientX - rect.left;
+            window.artLastY = e.clientY - rect.top;
+        });
+        
+        canvas.addEventListener('mousemove', (e) => {
+            if (!window.artIsDrawing) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            ctx.strokeStyle = window.artColor;
+            ctx.lineWidth = window.artBrushSize;
+            ctx.lineCap = 'round';
+            
+            ctx.beginPath();
+            ctx.moveTo(window.artLastX, window.artLastY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            
+            window.artLastX = x;
+            window.artLastY = y;
+        });
+        
+        canvas.addEventListener('mouseup', () => {
+            window.artIsDrawing = false;
+            gameScores.art = (gameScores.art || 0) + 1;
+            saveProgress();
+        });
+        
+        canvas.addEventListener('mouseleave', () => {
+            window.artIsDrawing = false;
+        });
+    }, 100);
+    
+    updateMascotText('Hayal gücünü kullan ve güzel resimler çiz! 🎨');
+}
+
+window.selectArtColor = function(color) {
+    window.artColor = color;
+    sounds.click();
+};
+
+window.clearArtCanvas = function() {
+    window.artCtx.clearRect(0, 0, window.artCanvas.width, window.artCanvas.height);
+    sounds.click();
+};
+
+// ===== ROBOT YAPIMCISI (OYUN #20) =====
+function startRobotGame() {
+    const parts = {
+        head: ['🤖', '👾', '🎃', '😊'],
+        body: ['⬜', '🟦', '🟥', '🟨'],
+        arms: ['💪', '🦾', '🙌', '👐'],
+        legs: ['🦵', '🦿', '👢', '👟']
+    };
+    
+    const html = `
+        <h2>🤖 Robot Yapımcısı</h2>
+        <p>Robot tasarla ve kodla!</p>
+        
+        <div style="background:linear-gradient(135deg, #2c3e50 0%, #34495e 100%); padding:40px; border-radius:20px; margin:20px auto; max-width:600px; color:white;">
+            <div style="font-size:2em; margin-bottom:20px;">Robotunu Tasarla:</div>
+            
+            <div id="robot-display" style="font-size:6em; margin:30px 0; min-height:250px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;">
+                <div id="robot-head">🤖</div>
+                <div id="robot-arms">🙌</div>
+                <div id="robot-body">⬜</div>
+                <div id="robot-legs">🦵</div>
+            </div>
+        </div>
+        
+        <div style="margin:30px auto; max-width:700px;">
+            ${Object.entries(parts).map(([partName, options]) => `
+                <div style="margin:20px 0;">
+                    <div style="font-size:1.3em; margin-bottom:10px; font-weight:bold; text-transform:capitalize;">
+                        ${partName === 'head' ? 'Kafa' : partName === 'body' ? 'Gövde' : partName === 'arms' ? 'Kollar' : 'Bacaklar'}:
+                    </div>
+                    <div style="display:flex; gap:15px; justify-content:center; flex-wrap:wrap;">
+                        ${options.map(part => `
+                            <button onclick="selectRobotPart('${partName}', '${part}')" 
+                                    style="font-size:3em; padding:15px; background:white; border:3px solid #ddd; border-radius:15px; cursor:pointer; transition:0.2s;"
+                                    onmouseover="this.style.borderColor='#4CAF50'"
+                                    onmouseout="this.style.borderColor='#ddd'">
+                                ${part}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+        
+        <div style="margin:30px;">
+            <button class="nav-btn" onclick="animateRobot()" style="background:#4CAF50;">▶️ Robotu Çalıştır</button>
+            <button class="nav-btn" onclick="startRobotGame()">🔄 Yeni Robot</button>
+            <button class="nav-btn" onclick="renderGames()">🔙 Geri</button>
+        </div>
+    `;
+    
+    document.getElementById('dynamic-content').innerHTML = html;
+    updateMascotText('Kendi robotunu tasarla! Parçaları seç ve robotunu çalıştır! 🤖');
+}
+
+window.selectRobotPart = function(partName, part) {
+    document.getElementById(`robot-${partName}`).textContent = part;
+    sounds.click();
+    
+    gameScores.robot = (gameScores.robot || 0) + 5;
+    saveProgress();
+};
+
+window.animateRobot = function() {
+    const robotParts = ['robot-head', 'robot-arms', 'robot-body', 'robot-legs'];
+    let index = 0;
+    
+    const interval = setInterval(() => {
+        const element = document.getElementById(robotParts[index]);
+        element.style.transform = 'scale(1.3)';
+        setTimeout(() => {
+            element.style.transform = 'scale(1)';
+        }, 200);
+        
+        sounds.click();
+        index++;
+        
+        if (index >= robotParts.length) {
+            clearInterval(interval);
+            showNotification('🤖 Robot çalışıyor! Harika tasarım!', 'success');
+            sounds.win();
+        }
+    }, 400);
+};
 
 // ===== SİSTEM FONKSİYONLARI =====
 function resetGameScores() {
